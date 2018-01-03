@@ -1,12 +1,4 @@
-/* 
- * File:   exception.h
- * Author: tomas
- *
- * Created on July 1, 2009, 16:15 PM
- */
-
-#ifndef _DNS_EXCEPTION_H
-#define	_DNS_EXCEPTION_H
+#pragma once
 
 #include <exception>
 #include <string>
@@ -38,6 +30,5 @@ public:
 private:
     std::string m_text;
 };
-}
-#endif	/* _DNS_EXCEPTION_H */
 
+} // namespace dns

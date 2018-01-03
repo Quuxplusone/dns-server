@@ -1,16 +1,9 @@
-/* 
- * File:   response.h
- * Author: tomas
- *
- * Created on 29 de junio de 2009, 4:45
- */
-
-#ifndef _DNS_RESPONSE_H
-#define	_DNS_RESPONSE_H
+#pragma once
 
 #include "message.h"
 
 namespace dns {
+
 /**
  *  Class that represents the DNS Response and is able to code itself in its
  *  corresponding message format.
@@ -71,6 +64,5 @@ private:
 
     void code_domain(char*& buffer, const std::string& domain) throw();
 };
-}
-#endif	/* _DNS_RESPONSE_H */
 
+} // namespace dns

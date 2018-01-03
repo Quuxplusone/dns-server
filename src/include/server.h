@@ -1,12 +1,4 @@
-/* 
- * File:   server.h
- * Author: tomas
- *
- * Created on June 27, 2009, 11:58 AM
- */
-
-#ifndef _DNS_SERVER_H
-#define	_DNS_SERVER_H
+#pragma once
 
 #include <netinet/in.h>
 
@@ -62,7 +54,5 @@ private:
 
     Resolver& m_resolver;
 };
-}
 
-#endif	/* _DNS_SERVER_H */
-
+} // namespace dns

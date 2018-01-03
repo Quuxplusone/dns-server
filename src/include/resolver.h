@@ -1,12 +1,4 @@
-/* 
- * File:   resolver.h
- * Author: tomas
- *
- * Created on 29 de junio de 2009, 3:47
- */
-
-#ifndef _DNS_RESOLVER_H
-#define	_DNS_RESOLVER_H
+#pragma once
 
 #include "exception.h"
 
@@ -126,6 +118,5 @@ protected:
      */
     const std::string find(const std::string& ipAddress) throw ();
 };
-}
-#endif	/* _DNS_RESOLVER_H */
 
+} // namespace dns

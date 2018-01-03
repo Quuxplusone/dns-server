@@ -1,12 +1,4 @@
-/* 
- * File:   application.h
- * Author: tomas
- *
- * Created on June 27, 2009, 16:20 AM
- */
-
-#ifndef _DNS_APPLICATION_H
-#define	_DNS_APPLICATION_H
+#pragma once
 
 #include "exception.h"
 #include "server.h"
@@ -52,7 +44,5 @@ private:
     Resolver m_resolver;
     Server m_server;
 };
-}
 
-#endif	/* _DNS_APPLICATION_H */
-
+} // namespace dns

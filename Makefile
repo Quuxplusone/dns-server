@@ -11,6 +11,8 @@ SRCS = \
 OBJS = $(patsubst %.cpp,.objs/cxx/%.o,$(SRCS))
 DEPS = $(patsubst %.cpp,.deps/cxx/%.d,$(SRCS))
 
+CPPFLAGS += -I src/include
+
 all: dnsserver
 
 ifneq ($(MAKECMDGOALS), clean)

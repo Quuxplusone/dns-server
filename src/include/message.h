@@ -1,12 +1,4 @@
-/* 
- * File:   message.h
- * Author: tomas
- *
- * Created on 29 de junio de 2009, 17:39
- */
-
-#ifndef _DNS_MESSAGE_H
-#define	_DNS_MESSAGE_H
+#pragma once
 
 #include <string>
 
@@ -139,6 +131,5 @@ private:
     static const uint RA_MASK = 0x8000;
     static const uint RCODE_MASK = 0x000F;
 };
-}
-#endif	/* _DNS_MESSAGE_H */
 
+} // namespace dns

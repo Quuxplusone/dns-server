@@ -1,12 +1,4 @@
-/* 
- * File:   query.h
- * Author: tomas
- *
- * Created on 26 de junio de 2009, 13:01
- */
-
-#ifndef _DNS_REQUEST_H
-#define	_DNS_REQUEST_H
+#pragma once
 
 #include <string>
 
@@ -61,6 +53,5 @@ private:
 
     void decode_qname(const char*& buffer) throw();
 };
-}
-#endif	/* _DNS_REQUEST_H */
 
+} // namespace dns
