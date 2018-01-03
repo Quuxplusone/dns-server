@@ -10,23 +10,19 @@
 
 using namespace dns;
 
-void Server::init(int port)
+void Server::bind_to(int port)
 {
-    Logger::trace("Server::init()");
-
     m_sockfd = socket(AF_INET, SOCK_DGRAM, 0);
 
-    m_address.sin_family = AF_INET;
-    m_address.sin_addr.s_addr = INADDR_ANY;
-    m_address.sin_port = htons(port);
+    struct sockaddr_in address;
+    address.sin_family = AF_INET;
+    address.sin_addr.s_addr = INADDR_ANY;
+    address.sin_port = htons(port);
 
-    int rbind = bind(m_sockfd, (struct sockaddr *) & m_address, sizeof (struct sockaddr_in));
-
+    int rbind = bind(m_sockfd, reinterpret_cast<struct sockaddr *>(&address), sizeof address);
     if (rbind != 0) {
         throw dns::Exception("Could not bind: ", strerror(errno));
     }
-
-    std::cout << "Listening in port: " << port << ", sockfd: " << m_sockfd << std::endl;
 }
 
 void Server::run() noexcept
@@ -37,20 +33,27 @@ void Server::run() noexcept
 
     char buffer[BUFFER_SIZE];
     struct sockaddr_in clientAddress;
-    socklen_t addrLen = sizeof (struct sockaddr_in);
+    socklen_t addrLen = sizeof clientAddress;
 
     while (true) {
-        int nbytes = recvfrom(m_sockfd, buffer, BUFFER_SIZE, 0, (struct sockaddr *) &clientAddress, &addrLen);
+        int nbytes = recvfrom(
+            m_sockfd,
+            buffer, sizeof buffer,
+            0,
+            reinterpret_cast<struct sockaddr *>(&clientAddress), &addrLen
+        );
 
         m_query.decode(buffer, nbytes);
-        m_query.asString();
 
         m_resolver.process(m_query, m_response);
 
-        m_response.asString();
-        memset(buffer, 0, BUFFER_SIZE);
         nbytes = m_response.code(buffer);
 
-        sendto(m_sockfd, buffer, nbytes, 0, (struct sockaddr *) &clientAddress, addrLen);
+        sendto(
+            m_sockfd,
+            buffer, nbytes,
+            0,
+            reinterpret_cast<struct sockaddr *>(&clientAddress), addrLen
+        );
     }
 }

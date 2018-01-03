@@ -28,7 +28,7 @@ public:
      *  the INADDR_ANY address and the port passed.
      *  @param port Port number where the socket is to be bound.
      */
-    void init(int port);
+    void bind_to(int port);
 
     /**
      *  The socket server runs in an infinite loop, waiting for queries and
@@ -39,7 +39,6 @@ public:
 private:
     static const int BUFFER_SIZE = 1024;
 
-    struct sockaddr_in m_address;
     int m_sockfd;
     Query m_query;
     Response m_response;

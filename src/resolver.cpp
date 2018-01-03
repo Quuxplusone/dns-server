@@ -10,10 +10,8 @@
 
 using namespace dns;
 
-void Resolver::init(const std::string& filename)
+Resolver::Resolver(const std::string& filename)
 {
-    Logger::trace("Resolver::init() | filename: ", filename);
-
     std::ifstream file(filename.data());
     if (!file) {
         throw dns::Exception("Could not open file: ", filename);
@@ -24,8 +22,6 @@ void Resolver::init(const std::string& filename)
         std::getline(file, line);
         store(line);
     }
-
-    print_records();
 }
 
 void Resolver::store(const std::string& line) noexcept
@@ -40,25 +36,19 @@ void Resolver::store(const std::string& line) noexcept
     std::string ipAddress(line, 0, ipAddressEndPos);
     std::string domainName(line, domainNameStartPos, line.length());
 
-    try {
-        m_record_list.emplace_back(ipAddress, domainName);
-    } catch (const std::exception& e) {
-        Logger::error("Could not create Record object");
-    }
+    m_record_list.emplace_back(ipAddress, domainName);
 }
 
 void Resolver::print_records() noexcept
 {
-    std::cout << "Reading records from file..." << std::endl;
     if (m_record_list.empty()) {
         std::cout << "No records on list." << std::endl;
-        return;
+    } else {
+        for (auto&& record : m_record_list) {
+            std::cout << "Record: " << record.ipAddress.data();
+            std::cout << " - " << record.domainName.data() << std::endl;
+        }
     }
-    for (auto&& record : m_record_list) {
-        std::cout << "Record: " << record.ipAddress.data();
-        std::cout << " - " << record.domainName.data() << std::endl;
-    }
-    std::cout << std::endl;
 }
 
 std::string Resolver::find(const std::string& ipAddress) noexcept

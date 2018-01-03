@@ -18,13 +18,11 @@ class Response;
  */
 class Resolver {
 public:
-    Resolver() = default;
-
     /**
      *  Open the hosts file and read it to stores the ipAddress-hostname pairs.
      *  @param filename Name of the file containing the pairs.
      */
-    void init(const std::string& filename);
+    explicit Resolver(const std::string& filename);
 
     /**
      *  Process the query and sets the response to that query. @ref Record
@@ -32,6 +30,11 @@ public:
      *  @param response @ref Response that will be answered.
      */
     void process(const Query& query, Response& response) noexcept;
+
+    /**
+     *  Prints all records from the list.
+     */
+    void print_records() noexcept;
 
 protected:
     /**
@@ -52,11 +55,6 @@ protected:
         Record(std::string ip, std::string domain) :
             ipAddress(std::move(ip)), domainName(std::move(domain)) { }
     };
-
-    /**
-     *  Prints all records from the list.
-     */
-    void print_records() noexcept;
 
     /**
      *  Convert IN-ADDR.ARPA domain to an IP address in dot notation
