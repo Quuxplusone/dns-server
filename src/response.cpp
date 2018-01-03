@@ -1,20 +1,15 @@
-/*
- * File:   response.cpp
- * Author: tomas
- *
- * Created on 29 de junio de 2009, 4:45
- */
-#include <iostream>
-#include <sstream>
 
 #include "logger.h"
 #include "message.h"
 #include "response.h"
 
+#include <iostream>
+#include <sstream>
+
 using namespace dns;
 
-std::string Response::asString() const throw() {
-
+std::string Response::asString() const noexcept
+{
     std::ostringstream text;
     text << std::endl << "RESPONSE { ";
     text << Message::asString();
@@ -29,17 +24,17 @@ std::string Response::asString() const throw() {
     return text.str();
 }
 
-void Response::decode(const char* buffer, int size) throw() {
-
+void Response::decode(const char *buffer, int size) noexcept
+{
     // Only needed for the DNS client
 }
 
-int Response::code(char* buffer) throw() {
-
+int Response::code(char *buffer) noexcept
+{
     Logger& logger = Logger::instance();
     logger.trace("Response::code()");
 
-    char* bufferBegin = buffer;
+    char *bufferBegin = buffer;
 
     code_hdr(buffer);
     buffer += HDR_OFFSET;
@@ -63,25 +58,23 @@ int Response::code(char* buffer) throw() {
     return size;
 }
 
-void Response::code_domain(char*& buffer, const std::string& domain) throw() {
-
-    int start(0), end; // indexes
+void Response::code_domain(char *&buffer, const std::string& domain) noexcept
+{
+    int start = 0;
+    int end;
 
     while ((end = domain.find('.', start)) != std::string::npos) {
-
         *buffer++ = end - start; // label length octet
-        for (int i=start; i<end; i++) {
-
+        for (int i = start; i < end; ++i) {
             *buffer++ = domain[i]; // label octets
         }
         start = end + 1; // Skip '.'
     }
 
     *buffer++ = domain.size() - start; // last label length octet
-    for (int i=start; i<domain.size(); i++) {
-
+    for (int i = start; i < domain.size(); ++i) {
         *buffer++ = domain[i]; // last label octets
     }
 
-    *buffer++ = 0;
+    *buffer++ = '\0';
 }

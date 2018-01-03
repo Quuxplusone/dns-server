@@ -6,24 +6,20 @@
 namespace dns {
 
 /**
- *  Exception class extends standard exception funtionality and adds it the text
+ *  Exception class extends standard exception functionality and adds it the text
  *  message to inform about the reason of the exception thrown.
  */
 class Exception : public std::exception {
 public:
-    /**
-     *  Constructor
-     *  @param text Information text to be filled with the reasons of the exception
-     */
-    Exception(std::string& text) : m_text(text) { }
-    virtual ~Exception() throw() { }
+    template<class... Args>
+    explicit Exception(Args&&... args) {
+        int a[] = {
+            [&]() { m_text += std::forward<Args>(args); return 0; }() ...
+        };
+        (void)a;
+    }
 
-    /**
-     *  Returns the information text string
-     *  @return The information text
-     */
-    const char* what() const throw() {
-
+    const char *what() const noexcept {
         return m_text.data();
     }
 

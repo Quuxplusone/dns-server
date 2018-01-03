@@ -12,46 +12,38 @@ namespace dns {
  */
 class Query : public Message {
 public:
-    /**
-     *  Constructor.
-     */
     Query() : Message(Message::Query) { }
-
-    /**
-     *  Destructor
-     */
-    virtual ~Query() { }
 
     /**
      *  Function that codes the query message in its format.
      *  @param buffer The buffer to code the query into.
      *  @return The size of the buffer coded
      */
-    int code(char* buffer) throw();
+    int code(char* buffer) noexcept;
 
     /**
      *  Function that decodes the query message in its format.
      *  @param buffer The buffer to decode the query into.
      *  @param size The size of the buffer to decode
      */
-    void decode(const char* buffer, int size) throw();
+    void decode(const char* buffer, int size) noexcept;
 
     /**
      *  Returns the query message as a string text.
      *  @return The string text with the query information.
      */
-    std::string asString() const throw();
+    std::string asString() const noexcept;
 
-    const std::string& getQName() const throw () { return m_qName; }
-    const uint getQType() const throw () { return m_qType; }
-    const uint getQClass() const throw () { return m_qClass; }
+    const std::string& getQName() const noexcept { return m_qName; }
+    const uint getQType() const noexcept { return m_qType; }
+    const uint getQClass() const noexcept { return m_qClass; }
 
 private:
     std::string m_qName;
     uint m_qType;
     uint m_qClass;
 
-    void decode_qname(const char*& buffer) throw();
+    void decode_qname(const char*& buffer) noexcept;
 };
 
 } // namespace dns

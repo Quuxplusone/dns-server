@@ -17,33 +17,36 @@ public:
     /**
      *  Type of DNS message
      */
-    enum Type { Query=0, Response };
+    enum Type {
+        Query = 0,
+        Response = 1,
+    };
 
     /**
      *  Pure virtual function that will code the correspoding message type
      *  @param buffer The buffer to code the message into.
      *  @return The size of the buffer coded
      */
-    virtual int code(char* buffer) throw() = 0;
+    virtual int code(char *buffer) noexcept = 0;
 
     /**
      *  Pure virtual function that will decode the correspoding message type
      *  @param buffer The buffer to decode the message into.
      *  @param size The size of the buffer to decode
      */
-    virtual void decode(const char* buffer, int size) throw() = 0;
+    virtual void decode(const char* buffer, int size) noexcept = 0;
 
-    uint getID() const throw() { return m_id; }
-    uint getQdCount() const throw() { return m_qdCount; }
-    uint getAnCount() const throw() { return m_anCount; }
-    uint getNsCount() const throw() { return m_nsCount; }
-    uint getArCount() const throw() { return m_arCount; }
+    uint getID() const noexcept { return m_id; }
+    uint getQdCount() const noexcept { return m_qdCount; }
+    uint getAnCount() const noexcept { return m_anCount; }
+    uint getNsCount() const noexcept { return m_nsCount; }
+    uint getArCount() const noexcept { return m_arCount; }
 
-    void setID(uint id) throw() { m_id = id; }
-    void setQdCount(uint count) throw() { m_qdCount = count; }
-    void setAnCount(uint count) throw() { m_anCount = count; }
-    void setNsCount(uint count) throw() { m_nsCount = count; }
-    void setArCount(uint count) throw() { m_arCount = count; }
+    void setID(uint id) noexcept { m_id = id; }
+    void setQdCount(uint count) noexcept { m_qdCount = count; }
+    void setAnCount(uint count) noexcept { m_anCount = count; }
+    void setNsCount(uint count) noexcept { m_nsCount = count; }
+    void setArCount(uint count) noexcept { m_arCount = count; }
 
 protected:
     static const uint HDR_OFFSET = 12;
@@ -77,19 +80,19 @@ protected:
      *  Returns the DNS message header as a string text.
      *  @return The string text with the header information.
      */
-    virtual std::string asString() const throw();
+    virtual std::string asString() const noexcept;
 
     /**
      *  Function that decodes the DNS message header section.
      *  @param buffer The buffer to decode the message header from.
      */
-    void decode_hdr(const char* buffer) throw ();
+    void decode_hdr(const char* buffer) noexcept;
 
     /**
      *  Function that codes the DNS message header section.
      *  @param buffer The buffer to code the message header into.
      */
-    void code_hdr(char* buffer) throw ();
+    void code_hdr(char* buffer) noexcept;
 
     /**
      *  Helper function that get 16 bits from the buffer and keeps it an int.
@@ -97,7 +100,7 @@ protected:
      *  @param buffer The buffer to get the 16 bits from.
      *  @return An int holding the value extracted.
      */
-    int get16bits(const char*& buffer) throw();
+    int get16bits(const char*& buffer) noexcept;
 
     /**
      *  Helper function that puts 16 bits into the buffer.
@@ -105,7 +108,7 @@ protected:
      *  @param buffer The buffer to put the 16 bits into.
      *  @param value An unsigned int holding the value to set the buffer.
      */
-    void put16bits(char*& buffer, uint value) throw ();
+    void put16bits(char*& buffer, uint value) noexcept;
 
     /**
      *  Helper function that puts 32 bits into the buffer.
@@ -113,14 +116,14 @@ protected:
      *  @param buffer The buffer to put the 32 bits into.
      *  @param value An unsigned long holding the value to set the buffer.
      */
-    void put32bits(char*& buffer, ulong value) throw ();
+    void put32bits(char*& buffer, ulong value) noexcept;
 
     /**
      *  Function that logs the whole buffer of a DNS Message
      *  @param buffer The buffer to be logged.
      *  @param size The size of the buffer.
      */
-    void log_buffer(const char* buffer, int size) throw();
+    void log_buffer(const char* buffer, int size) noexcept;
 
 private:
     static const uint QR_MASK = 0x8000;

@@ -1,19 +1,14 @@
-/*
- * File:   query.cpp
- * Author: tomas
- *
- * Created on 26 de junio de 2009, 13:01
- */
-#include <iostream>
-#include <sstream>
 
 #include "logger.h"
 #include "query.h"
 
+#include <iostream>
+#include <sstream>
+
 using namespace dns;
 
-std::string Query::asString() const throw() {
-
+std::string Query::asString() const noexcept
+{
     std::ostringstream text;
     text << std::endl << "QUERY { ";
     text << Message::asString();
@@ -21,18 +16,17 @@ std::string Query::asString() const throw() {
     text << "\tQtype: " << m_qType << std::endl;
     text << "\tQclass: " << m_qClass;
     text << " }" << std::dec;
-
     return text.str();
 }
 
-int Query::code(char* buffer) throw() {
-
+int Query::code(char* buffer) noexcept
+{
     // Only needed for the DNS client
     return 0;
 }
 
-void Query::decode(const char* buffer, int size) throw() {
-
+void Query::decode(const char* buffer, int size) noexcept
+{
     Logger& logger = Logger::instance();
     logger.trace("Query::decode()");
     log_buffer(buffer, size);
@@ -46,10 +40,9 @@ void Query::decode(const char* buffer, int size) throw() {
     m_qClass = get16bits(buffer);
 }
 
-void Query::decode_qname(const char*& buffer) throw() {
-
+void Query::decode_qname(const char*& buffer) noexcept
+{
     m_qName.clear();
-
     int length = *buffer++;
     while (length != 0) {
         for (int i = 0; i < length; i++) {

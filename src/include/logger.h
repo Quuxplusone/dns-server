@@ -13,57 +13,48 @@ namespace dns {
 class Logger {
 public:
     /**
-     *  Instanciates the one and only Logger object.
+     *  Instantiates the one and only Logger object.
      *  @return A reference to the one and only Logger object.
      */
-    static Logger& instance() throw ();
+    static Logger& instance() noexcept;
 
     /**
      *  Trace the message text to the log file.
      *  @param text Message text to log.
      */
-    void trace(const char* text) throw();
+    void trace(const char *text) noexcept;
 
     /**
      *  Trace the message text to the log file.
      *  @param text Message text to log.
      */
-    void trace(std::string& text) throw();
+    void trace(const std::string& text) noexcept;
 
     /**
      *  Trace the message text to the log file.
      *  @param text Message text to log.
      */
-    void trace(std::ostringstream& text) throw();
+    void trace(const std::ostringstream& text) noexcept;
 
     /**
      *  Trace the error message to the log file.
      *  @param text Error message to log.
      */
-    void error(const char* text) throw();
+    void error(const char *text) noexcept;
 
     /**
      *  Trace the error message to the log file.
      *  @param text Error message to log.
      */
-    void error(std::string& text) throw();
-
-protected:
-    /**
-     *  Constructor.
-     *  Creates the one and only Logger object.
-     */
-    Logger() { }
-
-    /**
-     *  Destructor
-     */
-    ~Logger() { _file.close(); }
+    void error(const std::string& text) noexcept;
 
 private:
-    static Logger* _instance;
-    static std::ofstream _file;
+    template<class... Args>
+    Logger(Args&&... args) : m_file(std::forward<Args>(args)...) {}
 
+    ~Logger() = default;
+
+    std::ofstream m_file;
 };
 
 } // namespace dns

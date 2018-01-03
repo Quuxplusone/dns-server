@@ -18,29 +18,23 @@ public:
      *  Constructor.
      *  Creates a Domain Server Application started from a terminal.
      */
-    Application() : m_server(m_resolver) { }
-
-    /**
-     *  Destructor
-     */
-    virtual ~Application() { }
+    Application() : m_server(m_resolver) {}
 
     /**
      *  Parse the port and hosts file from the arguments of main() function
      *  @param argc Number of arguments passed
      *  @param argv Array of arguments
      */
-    void parse_arguments(int argc, char** argv) throw (Exception);
+    void parse_arguments(int argc, char **argv);
 
     /**
      *  Starts the application. Initialize the @ref Resolver and the @ref Server.
      */
-    void run() throw(Exception);
+    void run();
 
 private:
     int m_port;
     std::string m_filename;
-
     Resolver m_resolver;
     Server m_server;
 };

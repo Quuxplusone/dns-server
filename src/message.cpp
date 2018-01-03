@@ -1,22 +1,16 @@
-/*
- * File:   message.cpp
- * Author: tomas
- *
- * Created on 29 de junio de 2009, 17:39
- */
+
+#include "logger.h"
+#include "message.h"
 
 #include <iostream>
 #include <sstream>
 #include <iomanip>
 #include <netinet/in.h>
 
-#include "logger.h"
-#include "message.h"
-
 using namespace dns;
 
-std::string Message::asString() const throw() {
-
+std::string Message::asString() const noexcept
+{
     std::ostringstream text;
     text << "ID: " << std::showbase << std::hex << m_id << std::endl << std::noshowbase;
     text << "\tfields: [ QR: " << m_qr << " opCode: " << m_opcode << " ]" << std::endl;
@@ -24,12 +18,11 @@ std::string Message::asString() const throw() {
     text << "\tANcount: " << m_anCount << std::endl;
     text << "\tNScount: " << m_nsCount << std::endl;
     text << "\tARcount: " << m_arCount << std::endl;
-
     return text.str();
 }
 
-void Message::decode_hdr(const char* buffer) throw () {
-
+void Message::decode_hdr(const char *buffer) noexcept
+{
     m_id = get16bits(buffer);
 
     uint fields = get16bits(buffer);
@@ -46,8 +39,8 @@ void Message::decode_hdr(const char* buffer) throw () {
     m_arCount = get16bits(buffer);
 }
 
-void Message::code_hdr(char* buffer) throw () {
-
+void Message::code_hdr(char *buffer) noexcept
+{
     put16bits(buffer, m_id);
 
     int fields = (m_qr << 15);
@@ -62,8 +55,8 @@ void Message::code_hdr(char* buffer) throw () {
     put16bits(buffer, m_arCount);
 }
 
-void Message::log_buffer(const char* buffer, int size) throw () {
-
+void Message::log_buffer(const char* buffer, int size) noexcept
+{
     std::ostringstream text;
 
     text << "Message::log_buffer()" << std::endl;
@@ -84,8 +77,8 @@ void Message::log_buffer(const char* buffer, int size) throw () {
     logger.trace(text);
 }
 
-int Message::get16bits(const char*& buffer) throw () {
-
+int Message::get16bits(const char*& buffer) noexcept
+{
     int value = static_cast<uchar> (buffer[0]);
     value = value << 8;
     value += static_cast<uchar> (buffer[1]);
@@ -94,15 +87,15 @@ int Message::get16bits(const char*& buffer) throw () {
     return value;
 }
 
-void Message::put16bits(char*& buffer, uint value) throw () {
-
+void Message::put16bits(char*& buffer, uint value) noexcept
+{
     buffer[0] = (value & 0xFF00) >> 8;
     buffer[1] = value & 0xFF;
     buffer += 2;
 }
 
-void Message::put32bits(char*& buffer, ulong value) throw () {
-
+void Message::put32bits(char*& buffer, ulong value) noexcept
+{
     buffer[0] = (value & 0xFF000000) >> 24;
     buffer[1] = (value & 0xFF0000) >> 16;
     buffer[2] = (value & 0xFF00) >> 16;

@@ -2,7 +2,6 @@
 
 #include <netinet/in.h>
 
-#include "exception.h"
 #include "query.h"
 #include "response.h"
 
@@ -22,36 +21,28 @@ public:
      *  Creates a socket Server.
      *  @param resolver The object @ref Resolver from the application.
      */
-    Server(Resolver& resolver) : m_resolver(resolver)
-        { }
-
-    /**
-     *  Destructor
-     */
-    virtual ~Server() { }
+    explicit Server(Resolver& resolver) : m_resolver(resolver) {}
 
     /**
      *  Initializes the server creating a UDP datagram socket and binding it to
      *  the INADDR_ANY address and the port passed.
-     *  @param port Port number where the socket is binded.
+     *  @param port Port number where the socket is to be bound.
      */
-    void init(int port) throw(Exception);
+    void init(int port);
 
     /**
      *  The socket server runs in an infinite loop, waiting for queries and
      *  handling them through the @ref Resolver and sending back the responses.
      */
-    void run() throw();
+    void run() noexcept;
 
 private:
     static const int BUFFER_SIZE = 1024;
 
     struct sockaddr_in m_address;
     int m_sockfd;
-
     Query m_query;
     Response m_response;
-
     Resolver& m_resolver;
 };
 

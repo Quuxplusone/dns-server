@@ -1,42 +1,32 @@
-/*
- * File:   application.cpp
- * Author: tomas
- *
- * Created on June 27, 2009, 16:20 AM
- */
-
-#include <iostream>
-#include <stdlib.h> //atoi
 
 #include "application.h"
 #include "logger.h"
 #include "exception.h"
 
+#include <iostream>
+#include <stdlib.h>
+
 using namespace dns;
 
-void Application::parse_arguments(int argc, char** argv) throw (Exception) {
-
+void Application::parse_arguments(int argc, char **argv)
+{
     if (argc != 3) {
-
-        std::string text("Usage: dnsServer <port> <hostsFile>\n");
-        text += "Example: dnsServer 9000 hosts\n";
-        Exception e(text);
-        throw (e);
+        throw dns::Exception(
+            "Usage: dnsServer <port> <hostsFile>\n"
+            "Example: dnsServer 9000 hosts\n"
+        );
     }
 
     m_port = atoi(argv[1]);
     if (m_port < 1 || m_port > 65535) {
-
-        std::string text("Error: Invalid port number.\n");
-        Exception e(text);
-        throw (e);
+        throw dns::Exception("Error: Invalid port number.\n");
     }
 
-    m_filename.assign(argv[2]);
+    m_filename = argv[2];
 }
 
-void Application::run() throw (Exception) {
-
+void Application::run()
+{
     Logger& logger = Logger::instance();
     logger.trace("Application::run()");
 

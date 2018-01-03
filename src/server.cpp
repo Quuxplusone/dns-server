@@ -1,23 +1,17 @@
-/*
- * File:   server.cpp
- * Author: tomas
- *
- * Created on June 26, 2009, 11:58 AM
- */
+
+#include "logger.h"
+#include "server.h"
+#include "resolver.h"
 
 #include <iostream>
 #include <cstring>
 #include <sys/socket.h>
 #include <errno.h>
 
-#include "logger.h"
-#include "server.h"
-#include "resolver.h"
-
 using namespace dns;
 
-void Server::init(int port) throw (Exception) {
-
+void Server::init(int port)
+{
     Logger& logger = Logger::instance();
     logger.trace("Server::init()");
 
@@ -27,21 +21,17 @@ void Server::init(int port) throw (Exception) {
     m_address.sin_addr.s_addr = INADDR_ANY;
     m_address.sin_port = htons(port);
 
-    int rbind = bind(m_sockfd, (struct sockaddr *) & m_address,
-                     sizeof (struct sockaddr_in));
+    int rbind = bind(m_sockfd, (struct sockaddr *) & m_address, sizeof (struct sockaddr_in));
 
     if (rbind != 0) {
-        std::string text("Could not bind: ");
-        text += strerror(errno);
-        Exception e(text);
-        throw(e);
+        throw dns::Exception("Could not bind: ", strerror(errno));
     }
 
     std::cout << "Listening in port: " << port << ", sockfd: " << m_sockfd << std::endl;
 }
 
-void Server::run() throw () {
-
+void Server::run() noexcept
+{
     Logger& logger = Logger::instance();
     logger.trace("Server::run()");
 
@@ -52,9 +42,7 @@ void Server::run() throw () {
     socklen_t addrLen = sizeof (struct sockaddr_in);
 
     while (true) {
-
-        int nbytes = recvfrom(m_sockfd, buffer, BUFFER_SIZE, 0,
-                     (struct sockaddr *) &clientAddress, &addrLen);
+        int nbytes = recvfrom(m_sockfd, buffer, BUFFER_SIZE, 0, (struct sockaddr *) &clientAddress, &addrLen);
 
         m_query.decode(buffer, nbytes);
         m_query.asString();
@@ -65,7 +53,6 @@ void Server::run() throw () {
         memset(buffer, 0, BUFFER_SIZE);
         nbytes = m_response.code(buffer);
 
-        sendto(m_sockfd, buffer, nbytes, 0, (struct sockaddr *) &clientAddress,
-               addrLen);
+        sendto(m_sockfd, buffer, nbytes, 0, (struct sockaddr *) &clientAddress, addrLen);
     }
 }
