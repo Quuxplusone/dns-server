@@ -23,7 +23,7 @@ public:
      *  @return The information text
      */
     const char* what() const throw() {
-        
+
         return m_text.data();
     }
 

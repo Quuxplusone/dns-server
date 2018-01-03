@@ -1,7 +1,7 @@
-/* 
+/*
  * File:   query.cpp
  * Author: tomas
- * 
+ *
  * Created on 26 de junio de 2009, 13:01
  */
 #include <iostream>
@@ -40,7 +40,7 @@ void Query::decode(const char* buffer, int size) throw() {
 
     decode_hdr(buffer);
     buffer += HDR_OFFSET;
-    
+
     decode_qname(buffer);
 
     m_qType = get16bits(buffer);

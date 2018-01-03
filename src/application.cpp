@@ -1,7 +1,7 @@
-/* 
+/*
  * File:   application.cpp
  * Author: tomas
- * 
+ *
  * Created on June 27, 2009, 16:20 AM
  */
 
@@ -27,7 +27,7 @@ void Application::parse_arguments(int argc, char** argv) throw (Exception) {
 
     m_port = atoi(argv[1]);
     if (m_port < 1 || m_port > 65535) {
-        
+
         string text("Error: Invalid port number.\n");
         Exception e(text);
         throw (e);

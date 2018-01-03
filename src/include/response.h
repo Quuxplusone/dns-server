@@ -53,7 +53,7 @@ public:
     void setTtl(const uint value) throw() { m_ttl = value; }
     void setRdLength(const uint value) throw() { m_rdLength = value; }
     void setRdata(const std::string& value) throw() { m_rdata = value; }
-    
+
 private:
     std::string m_name;
     uint m_type;

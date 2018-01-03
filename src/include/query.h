@@ -45,7 +45,7 @@ public:
     const std::string& getQName() const throw () { return m_qName; }
     const uint getQType() const throw () { return m_qType; }
     const uint getQClass() const throw () { return m_qClass; }
-    
+
 private:
     std::string m_qName;
     uint m_qType;

@@ -1,7 +1,7 @@
-/* 
+/*
  * File:   resolver.cpp
  * Author: torti
- * 
+ *
  * Created on 29 de junio de 2009, 3:47
  */
 
@@ -129,7 +129,7 @@ const string Resolver::find(const std::string& ipAddress) throw () {
 
     Record* record = m_record_list;
     while (record != 0) {
-        
+
         if (record->ipAddress == ipAddress) {
 
             domainName = record->domainName;

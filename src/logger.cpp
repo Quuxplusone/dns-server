@@ -1,7 +1,7 @@
-/* 
+/*
  * File:   logger.cpp
  * Author: tomas
- * 
+ *
  * Created on June 30, 2009, 5:18 PM
  */
 

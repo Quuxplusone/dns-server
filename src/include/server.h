@@ -42,7 +42,7 @@ public:
      *  handling them through the @ref Resolver and sending back the responses.
      */
     void run() throw();
-    
+
 private:
     static const int BUFFER_SIZE = 1024;
 

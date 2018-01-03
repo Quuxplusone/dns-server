@@ -1,7 +1,7 @@
-/* 
+/*
  * File:   server.cpp
  * Author: tomas
- * 
+ *
  * Created on June 26, 2009, 11:58 AM
  */
 
@@ -30,7 +30,7 @@ void Server::init(int port) throw (Exception) {
 
     int rbind = bind(m_sockfd, (struct sockaddr *) & m_address,
                      sizeof (struct sockaddr_in));
-    
+
     if (rbind != 0) {
         string text("Could not bind: ");
         text += strerror(errno);
@@ -45,7 +45,7 @@ void Server::run() throw () {
 
     Logger& logger = Logger::instance();
     logger.trace("Server::run()");
-    
+
     cout << "DNS Server running..." << endl;
 
     char buffer[BUFFER_SIZE];

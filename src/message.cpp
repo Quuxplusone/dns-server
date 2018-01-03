@@ -1,7 +1,7 @@
-/* 
+/*
  * File:   message.cpp
  * Author: tomas
- * 
+ *
  * Created on 29 de junio de 2009, 17:39
  */
 

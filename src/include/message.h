@@ -56,7 +56,7 @@ protected:
     uint m_rd;
     uint m_ra;
     uint m_rcode;
-    
+
     uint m_qdCount;
     uint m_anCount;
     uint m_nsCount;
@@ -121,7 +121,7 @@ protected:
      *  @param size The size of the buffer.
      */
     void log_buffer(const char* buffer, int size) throw();
-    
+
 private:
     static const uint QR_MASK = 0x8000;
     static const uint OPCODE_MASK = 0x7800;

@@ -1,7 +1,7 @@
-/* 
+/*
  * File:   response.cpp
  * Author: tomas
- * 
+ *
  * Created on 29 de junio de 2009, 4:45
  */
 #include <iostream>
@@ -57,7 +57,7 @@ int Response::code(char* buffer) throw() {
     put32bits(buffer, m_ttl);
     put16bits(buffer, m_rdLength);
     code_domain(buffer, m_rdata);
-    
+
     int size = buffer - bufferBegin;
     log_buffer(bufferBegin, size);
 
