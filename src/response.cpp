@@ -8,27 +8,6 @@
 
 using namespace dns;
 
-std::string Response::asString() const noexcept
-{
-    std::ostringstream text;
-    text << std::endl << "RESPONSE { ";
-    text << Message::asString();
-
-    text << "\tname: " << m_name << std::endl;
-    text << "\ttype: " << m_type << std::endl;
-    text << "\tclass: " << m_class << std::endl;
-    text << "\tttl: " << m_ttl << std::endl;
-    text << "\trdLength: " << m_rdLength << std::endl;
-    text << "\trdata: " << m_rdata << " }" << std::dec;
-
-    return text.str();
-}
-
-void Response::decode(const char *buffer, int size) noexcept
-{
-    // Only needed for the DNS client
-}
-
 int Response::encode(char *buffer) noexcept
 {
     char *bufferBegin = buffer;
@@ -50,8 +29,6 @@ int Response::encode(char *buffer) noexcept
     encode_domain(buffer, m_rdata);
 
     int size = buffer - bufferBegin;
-    log_buffer(bufferBegin, size);
-
     return size;
 }
 

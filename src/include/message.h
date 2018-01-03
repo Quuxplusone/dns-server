@@ -17,24 +17,10 @@ public:
     /**
      *  Type of DNS message
      */
-    enum Type {
+    enum QR {
         Query = 0,
         Response = 1,
     };
-
-    /**
-     *  Pure virtual function that will code the correspoding message type
-     *  @param buffer The buffer to code the message into.
-     *  @return The size of the buffer coded
-     */
-    virtual int encode(char *buffer) noexcept = 0;
-
-    /**
-     *  Pure virtual function that will decode the correspoding message type
-     *  @param buffer The buffer to decode the message into.
-     *  @param size The size of the buffer to decode
-     */
-    virtual void decode(const char* buffer, int size) noexcept = 0;
 
     uint getID() const noexcept { return m_id; }
     uint getQdCount() const noexcept { return m_qdCount; }
@@ -65,22 +51,7 @@ protected:
     uint m_nsCount;
     uint m_arCount;
 
-    /**
-     *  Constructor.
-     *  @param type The type of DNS Message
-     */
-    Message(Type type) : m_qr(type) { }
-
-    /**
-     *  Destructor
-     */
-    virtual ~Message() { }
-
-    /**
-     *  Returns the DNS message header as a string text.
-     *  @return The string text with the header information.
-     */
-    virtual std::string asString() const noexcept;
+    explicit Message(QR qr) : m_qr(qr) { }
 
     /**
      *  Function that decodes the DNS message header section.
@@ -117,13 +88,6 @@ protected:
      *  @param value An unsigned long holding the value to set the buffer.
      */
     void put32bits(char*& buffer, ulong value) noexcept;
-
-    /**
-     *  Function that logs the whole buffer of a DNS Message
-     *  @param buffer The buffer to be logged.
-     *  @param size The size of the buffer.
-     */
-    void log_buffer(const char* buffer, int size) noexcept;
 
 private:
     static const uint QR_MASK = 0x8000;

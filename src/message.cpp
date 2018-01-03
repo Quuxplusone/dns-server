@@ -9,18 +9,6 @@
 
 using namespace dns;
 
-std::string Message::asString() const noexcept
-{
-    std::ostringstream text;
-    text << "ID: " << std::showbase << std::hex << m_id << std::endl << std::noshowbase;
-    text << "\tfields: [ QR: " << m_qr << " opCode: " << m_opcode << " ]" << std::endl;
-    text << "\tQDcount: " << m_qdCount << std::endl;
-    text << "\tANcount: " << m_anCount << std::endl;
-    text << "\tNScount: " << m_nsCount << std::endl;
-    text << "\tARcount: " << m_arCount << std::endl;
-    return text.str();
-}
-
 void Message::decode_hdr(const char *buffer) noexcept
 {
     m_id = get16bits(buffer);
@@ -53,27 +41,6 @@ void Message::encode_hdr(char *buffer) noexcept
     put16bits(buffer, m_anCount);
     put16bits(buffer, m_nsCount);
     put16bits(buffer, m_arCount);
-}
-
-void Message::log_buffer(const char* buffer, int size) noexcept
-{
-    std::ostringstream text;
-
-    text << "Message::log_buffer()" << std::endl;
-    text << "size: " << size << " bytes" << std::endl;
-    text << "---------------------------------" << std::setfill('0');
-
-    for (int i = 0; i < size; i++) {
-        if ((i % 10) == 0) {
-            text << std::endl << std::setw(2) << i << ": ";
-        }
-        uchar c = buffer[i];
-        text << std::hex << std::setw(2) << int(c) << " " << std::dec;
-    }
-    text << std::endl << std::setfill(' ');
-    text << "---------------------------------";
-
-    Logger::trace(text.str());
 }
 
 int Message::get16bits(const char*& buffer) noexcept

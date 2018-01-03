@@ -66,8 +66,6 @@ std::string Resolver::find(const std::string& ipAddress) noexcept
 
 void Resolver::process(const Query& query, Response& response) noexcept
 {
-    Logger::trace("Resolver::process()", query.asString());
-
     std::string qName = query.getQName();
     std::string ipAddress = convert(qName);
     std::string domainName = find(ipAddress);
@@ -92,8 +90,6 @@ void Resolver::process(const Query& query, Response& response) noexcept
         response.setRCode(Response::NOERROR);
         response.setRdLength(domainName.size()+2); // + initial label length & null label
     }
-
-    Logger::trace("Resolver::process()", response.asString());
 }
 
 std::string Resolver::convert(const std::string& qName) noexcept

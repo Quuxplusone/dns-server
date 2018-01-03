@@ -12,14 +12,7 @@ namespace dns {
  */
 class Query : public Message {
 public:
-    Query() : Message(Message::Query) { }
-
-    /**
-     *  Function that codes the query message in its format.
-     *  @param buffer The buffer to code the query into.
-     *  @return The size of the buffer coded
-     */
-    int encode(char* buffer) noexcept;
+    Query() : Message(Message::Query) {}
 
     /**
      *  Function that decodes the query message in its format.
@@ -27,12 +20,6 @@ public:
      *  @param size The size of the buffer to decode
      */
     void decode(const char* buffer, int size) noexcept;
-
-    /**
-     *  Returns the query message as a string text.
-     *  @return The string text with the query information.
-     */
-    std::string asString() const noexcept;
 
     const std::string& getQName() const noexcept { return m_qName; }
     const uint getQType() const noexcept { return m_qType; }
