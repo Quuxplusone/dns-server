@@ -27,7 +27,7 @@ public:
      *  @param buffer The buffer to code the message into.
      *  @return The size of the buffer coded
      */
-    virtual int code(char *buffer) noexcept = 0;
+    virtual int encode(char *buffer) noexcept = 0;
 
     /**
      *  Pure virtual function that will decode the correspoding message type
@@ -92,7 +92,7 @@ protected:
      *  Function that codes the DNS message header section.
      *  @param buffer The buffer to code the message header into.
      */
-    void code_hdr(char* buffer) noexcept;
+    void encode_hdr(char* buffer) noexcept;
 
     /**
      *  Helper function that get 16 bits from the buffer and keeps it an int.

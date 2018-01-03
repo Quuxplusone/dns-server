@@ -47,7 +47,7 @@ void Server::run() noexcept
 
         m_resolver.process(m_query, m_response);
 
-        nbytes = m_response.code(buffer);
+        nbytes = m_response.encode(buffer);
 
         sendto(
             m_sockfd,

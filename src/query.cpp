@@ -19,7 +19,7 @@ std::string Query::asString() const noexcept
     return text.str();
 }
 
-int Query::code(char* buffer) noexcept
+int Query::encode(char* buffer) noexcept
 {
     // Only needed for the DNS client
     return 0;

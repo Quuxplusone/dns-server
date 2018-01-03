@@ -37,7 +37,7 @@ public:
      *  @param buffer The buffer to code the query into.
      *  @return The size of the buffer coded
      */
-    int code(char* buffer) noexcept;
+    int encode(char* buffer) noexcept;
 
     /**
      *  Function that decodes the response message in its format.
@@ -68,7 +68,7 @@ private:
     uint m_rdLength;
     std::string m_rdata;
 
-    void code_domain(char*& buffer, const std::string& domain) noexcept;
+    void encode_domain(char*& buffer, const std::string& domain) noexcept;
 };
 
 } // namespace dns

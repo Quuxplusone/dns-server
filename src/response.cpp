@@ -29,27 +29,25 @@ void Response::decode(const char *buffer, int size) noexcept
     // Only needed for the DNS client
 }
 
-int Response::code(char *buffer) noexcept
+int Response::encode(char *buffer) noexcept
 {
-    Logger::trace("Response::code()");
-
     char *bufferBegin = buffer;
 
-    code_hdr(buffer);
+    encode_hdr(buffer);
     buffer += HDR_OFFSET;
 
     // Code Question section
-    code_domain(buffer, m_name);
+    encode_domain(buffer, m_name);
     put16bits(buffer, m_type);
     put16bits(buffer, m_class);
 
     // Code Answer section
-    code_domain(buffer, m_name);
+    encode_domain(buffer, m_name);
     put16bits(buffer, m_type);
     put16bits(buffer, m_class);
     put32bits(buffer, m_ttl);
     put16bits(buffer, m_rdLength);
-    code_domain(buffer, m_rdata);
+    encode_domain(buffer, m_rdata);
 
     int size = buffer - bufferBegin;
     log_buffer(bufferBegin, size);
@@ -57,7 +55,7 @@ int Response::code(char *buffer) noexcept
     return size;
 }
 
-void Response::code_domain(char *&buffer, const std::string& domain) noexcept
+void Response::encode_domain(char *&buffer, const std::string& domain) noexcept
 {
     int start = 0;
     int end;

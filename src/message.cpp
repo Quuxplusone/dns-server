@@ -39,7 +39,7 @@ void Message::decode_hdr(const char *buffer) noexcept
     m_arCount = get16bits(buffer);
 }
 
-void Message::code_hdr(char *buffer) noexcept
+void Message::encode_hdr(char *buffer) noexcept
 {
     put16bits(buffer, m_id);
 
