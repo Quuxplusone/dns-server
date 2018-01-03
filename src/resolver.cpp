@@ -50,58 +50,23 @@ void Resolver::store(const std::string& line) noexcept
     std::string domainName(line, domainNameStartPos, line.length());
 
     try {
-        Record *record = new Record(ipAddress, domainName);
-        add(record);
+        m_record_list.emplace_back(ipAddress, domainName);
     } catch (const std::exception& e) {
         Logger& logger = Logger::instance();
         logger.error("Could not create Record object");
     }
 }
 
-void Resolver::add(Record *newone) noexcept
-{
-    Logger& logger = Logger::instance();
-    std::string text("Resolver::add() | Record: ");
-    text += newone->ipAddress.data();
-    text += "-";
-    text += newone->domainName.data();
-    logger.trace(text);
-
-    Record* record = m_record_list;
-    if (record == nullptr) {
-        m_record_list = newone;
-        return;
-    }
-
-    while (record->next != nullptr) {
-        record = record->next;
-    }
-    record->next = newone;
-}
-
-void Resolver::deleteList() noexcept
-{
-    Record *record = m_record_list;
-    while (record != nullptr) {
-        Record* next = record->next;
-        delete record;
-        record = next;
-    }
-}
-
 void Resolver::print_records() noexcept
 {
     std::cout << "Reading records from file..." << std::endl;
-
-    Record *record = m_record_list;
-    if (record == nullptr) {
+    if (m_record_list.empty()) {
         std::cout << "No records on list." << std::endl;
         return;
     }
-    while (record != nullptr) {
-        std::cout << "Record: " << record->ipAddress.data();
-        std::cout << " - " << record->domainName.data() << std::endl;
-        record = record->next;
+    for (auto&& record : m_record_list) {
+        std::cout << "Record: " << record.ipAddress.data();
+        std::cout << " - " << record.domainName.data() << std::endl;
     }
     std::cout << std::endl;
 }
@@ -109,18 +74,15 @@ void Resolver::print_records() noexcept
 std::string Resolver::find(const std::string& ipAddress) noexcept
 {
     Logger& logger = Logger::instance();
-    std::string text("Resolver::find() | ipAddres: ");
+    std::string text("Resolver::find() | ipAddress: ");
     text += ipAddress;
 
     std::string domainName;
-
-    Record *record = m_record_list;
-    while (record != nullptr) {
-        if (record->ipAddress == ipAddress) {
-            domainName = record->domainName;
+    for (auto&& record : m_record_list) {
+        if (record.ipAddress == ipAddress) {
+            domainName = record.domainName;
             break;
         }
-        record = record->next;
     }
 
     text += " ---> ";

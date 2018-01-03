@@ -2,6 +2,7 @@
 
 #include "exception.h"
 
+#include <list>
 #include <string>
 #include <utility>
 
@@ -18,8 +19,6 @@ class Response;
 class Resolver {
 public:
     Resolver() = default;
-
-    virtual ~Resolver() { deleteList(); }
 
     /**
      *  Open the hosts file and read it to stores the ipAddress-hostname pairs.
@@ -48,7 +47,6 @@ protected:
     struct Record {
         std::string ipAddress;  // IP address in dot notation
         std::string domainName;
-        Record *next = nullptr;
 
         Record() = default;
         Record(std::string ip, std::string domain) :
@@ -56,24 +54,12 @@ protected:
     };
 
     /**
-     *  Adds new record to the list
-     *  @param record Pointer to the record to add
-     */
-    void add(Record *record) noexcept;
-
-    /**
-     *  Deletes all records from the list. Used in destructor
-     */
-    void deleteList() noexcept;
-
-
-    /**
      *  Prints all records from the list.
      */
     void print_records() noexcept;
 
     /**
-     *  Covert IN-ADDR.ARPA domain to an IP addrress in dot notation
+     *  Convert IN-ADDR.ARPA domain to an IP address in dot notation
      *  @param domain The domain name
      *  @return The IP addrress formatted in dot notation.
      */
@@ -89,7 +75,7 @@ protected:
     /**
      *  Pointer to the start of the list of records.
      */
-    Record *m_record_list = nullptr;
+    std::list<Record> m_record_list;
 };
 
 } // namespace dns
