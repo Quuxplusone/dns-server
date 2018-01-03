@@ -14,7 +14,6 @@
 #include "server.h"
 #include "resolver.h"
 
-using namespace std;
 using namespace dns;
 
 void Server::init(int port) throw (Exception) {
@@ -32,13 +31,13 @@ void Server::init(int port) throw (Exception) {
                      sizeof (struct sockaddr_in));
 
     if (rbind != 0) {
-        string text("Could not bind: ");
+        std::string text("Could not bind: ");
         text += strerror(errno);
         Exception e(text);
         throw(e);
     }
 
-    cout << "Listening in port: " << port << ", sockfd: " << m_sockfd << endl;
+    std::cout << "Listening in port: " << port << ", sockfd: " << m_sockfd << std::endl;
 }
 
 void Server::run() throw () {
@@ -46,7 +45,7 @@ void Server::run() throw () {
     Logger& logger = Logger::instance();
     logger.trace("Server::run()");
 
-    cout << "DNS Server running..." << endl;
+    std::cout << "DNS Server running..." << std::endl;
 
     char buffer[BUFFER_SIZE];
     struct sockaddr_in clientAddress;

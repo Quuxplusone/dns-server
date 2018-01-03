@@ -13,13 +13,12 @@
 #include "exception.h"
 
 using namespace dns;
-using namespace std;
 
 void Application::parse_arguments(int argc, char** argv) throw (Exception) {
 
     if (argc != 3) {
 
-        string text("Usage: dnsServer <port> <hostsFile>\n");
+        std::string text("Usage: dnsServer <port> <hostsFile>\n");
         text += "Example: dnsServer 9000 hosts\n";
         Exception e(text);
         throw (e);
@@ -28,7 +27,7 @@ void Application::parse_arguments(int argc, char** argv) throw (Exception) {
     m_port = atoi(argv[1]);
     if (m_port < 1 || m_port > 65535) {
 
-        string text("Error: Invalid port number.\n");
+        std::string text("Error: Invalid port number.\n");
         Exception e(text);
         throw (e);
     }

@@ -10,18 +10,17 @@
 #include "logger.h"
 #include "query.h"
 
-using namespace std;
 using namespace dns;
 
-string Query::asString() const throw() {
+std::string Query::asString() const throw() {
 
-    ostringstream text;
-    text << endl << "QUERY { ";
+    std::ostringstream text;
+    text << std::endl << "QUERY { ";
     text << Message::asString();
-    text << "\tQname: " << m_qName << endl;
-    text << "\tQtype: " << m_qType << endl;
+    text << "\tQname: " << m_qName << std::endl;
+    text << "\tQtype: " << m_qType << std::endl;
     text << "\tQclass: " << m_qClass;
-    text << " }" << dec;
+    text << " }" << std::dec;
 
     return text.str();
 }

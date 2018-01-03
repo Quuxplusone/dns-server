@@ -14,31 +14,30 @@
 #include "query.h"
 #include "response.h"
 
-using namespace std;
 using namespace dns;
 
 void Resolver::init(const std::string& filename) throw (Exception) {
 
     Logger& logger = Logger::instance();
-    string text("Resolver::init() | filename: ");
+    std::string text("Resolver::init() | filename: ");
     text += filename;
     logger.trace(text);
 
-    ifstream file(filename.data());
+    std::ifstream file(filename.data());
 
     if (!file) {
 
-        string text("Could not open file: ");
+        std::string text("Could not open file: ");
         text += filename;
         logger.error(text);
         Exception e(text);
         throw (e);
     }
 
-    string line;
+    std::string line;
     while (!file.eof()) {
 
-        getline(file, line);
+        std::getline(file, line);
         store(line);
     }
 
@@ -49,21 +48,21 @@ void Resolver::init(const std::string& filename) throw (Exception) {
 
 void Resolver::store(const std::string& line) throw () {
 
-    string::size_type ipAddresEndPos = line.find_first_of(" ");
-    if (ipAddresEndPos == string::npos) return;
+    std::string::size_type ipAddresEndPos = line.find_first_of(" ");
+    if (ipAddresEndPos == std::string::npos) return;
 
-    string::size_type domainNameStartPos = line.find_last_of(" ");
-    if (domainNameStartPos == string::npos) return;
+    std::string::size_type domainNameStartPos = line.find_last_of(" ");
+    if (domainNameStartPos == std::string::npos) return;
     domainNameStartPos += 1;
 
-    string ipAddress(line, 0, ipAddresEndPos);
-    string domainName(line, domainNameStartPos, line.length());
+    std::string ipAddress(line, 0, ipAddresEndPos);
+    std::string domainName(line, domainNameStartPos, line.length());
 
     try {
         Record* record = new Record(ipAddress, domainName);
         add(record);
     }
-    catch (exception& e) {
+    catch (std::exception& e) {
         Logger& logger = Logger::instance();
         logger.error("Could not create Record object");
     }
@@ -72,7 +71,7 @@ void Resolver::store(const std::string& line) throw () {
 void Resolver::add(Record* newone) throw() {
 
     Logger& logger = Logger::instance();
-    string text("Resolver::add() | Record: ");
+    std::string text("Resolver::add() | Record: ");
     text += newone->ipAddress.data();
     text += "-";
     text += newone->domainName.data();
@@ -103,29 +102,29 @@ void Resolver::deleteList() throw() {
 
 void Resolver::print_records() throw() {
 
-    cout << "Reading records from file..." << endl;
+    std::cout << "Reading records from file..." << std::endl;
 
     Record* record = m_record_list;
     if (record == 0) {
-        cout << "No records on list." << endl;
+        std::cout << "No records on list." << std::endl;
         return;
     }
 
     while (record != 0) {
-        cout << "Record: " << record->ipAddress.data();
-        cout << " - " << record->domainName.data() << endl;
+        std::cout << "Record: " << record->ipAddress.data();
+        std::cout << " - " << record->domainName.data() << std::endl;
         record = record->next;
     }
-    cout << endl;
+    std::cout << std::endl;
 }
 
-const string Resolver::find(const std::string& ipAddress) throw () {
+const std::string Resolver::find(const std::string& ipAddress) throw () {
 
     Logger& logger = Logger::instance();
-    string text("Resolver::find() | ipAddres: ");
+    std::string text("Resolver::find() | ipAddres: ");
     text += ipAddress;
 
-    string domainName;
+    std::string domainName;
 
     Record* record = m_record_list;
     while (record != 0) {
@@ -148,13 +147,13 @@ const string Resolver::find(const std::string& ipAddress) throw () {
 void Resolver::process(const Query& query, Response& response) throw () {
 
     Logger& logger = Logger::instance();
-    string text("Resolver::process()");
+    std::string text("Resolver::process()");
     text += query.asString();
     logger.trace(text);
 
-    string qName = query.getQName();
-    string ipAddress = convert(qName);
-    string domainName = find( ipAddress );
+    std::string qName = query.getQName();
+    std::string ipAddress = convert(qName);
+    std::string domainName = find( ipAddress );
 
     response.setID( query.getID() );
     response.setQdCount(1);
@@ -164,16 +163,16 @@ void Resolver::process(const Query& query, Response& response) throw () {
     response.setClass( query.getQClass() );
     response.setRdata(domainName);
 
-    cout << endl << "Query for: " << ipAddress;
-    cout << endl << "Response with: ";
+    std::cout << std::endl << "Query for: " << ipAddress;
+    std::cout << std::endl << "Response with: ";
 
     if (domainName.empty()) {
-        cout << "NameError" << endl;
+        std::cout << "NameError" << std::endl;
         response.setRCode(Response::NameError);
         response.setRdLength(1); // null label
     }
     else {
-        cout << domainName << endl;
+        std::cout << domainName << std::endl;
         response.setRCode(Response::Ok);
         response.setRdLength(domainName.size()+2); // + initial label length & null label
     }
@@ -183,14 +182,14 @@ void Resolver::process(const Query& query, Response& response) throw () {
     logger.trace(text);
 }
 
-string Resolver::convert(const std::string& qName) throw() {
+std::string Resolver::convert(const std::string& qName) throw() {
 
     int pos = qName.find(".in-addr.arpa");
-    if (pos == string::npos) return string();
+    if (pos == std::string::npos) return std::string();
 
-    string tmp(qName, 0, pos);
-    string ipAddress;
-    while ((pos = tmp.rfind('.')) != string::npos) {
+    std::string tmp(qName, 0, pos);
+    std::string ipAddress;
+    while ((pos = tmp.rfind('.')) != std::string::npos) {
 
         ipAddress.append(tmp, pos+1, tmp.size());
         ipAddress.append(".");
@@ -200,5 +199,3 @@ string Resolver::convert(const std::string& qName) throw() {
 
     return ipAddress;
 }
-
-

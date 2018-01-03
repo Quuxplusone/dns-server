@@ -14,17 +14,16 @@
 #include "message.h"
 
 using namespace dns;
-using namespace std;
 
-string Message::asString() const throw() {
+std::string Message::asString() const throw() {
 
-    ostringstream text;
-    text << "ID: " << showbase << hex << m_id << endl << noshowbase;
-    text << "\tfields: [ QR: " << m_qr << " opCode: " << m_opcode << " ]" << endl;
-    text << "\tQDcount: " << m_qdCount << endl;
-    text << "\tANcount: " << m_anCount << endl;
-    text << "\tNScount: " << m_nsCount << endl;
-    text << "\tARcount: " << m_arCount << endl;
+    std::ostringstream text;
+    text << "ID: " << std::showbase << std::hex << m_id << std::endl << std::noshowbase;
+    text << "\tfields: [ QR: " << m_qr << " opCode: " << m_opcode << " ]" << std::endl;
+    text << "\tQDcount: " << m_qdCount << std::endl;
+    text << "\tANcount: " << m_anCount << std::endl;
+    text << "\tNScount: " << m_nsCount << std::endl;
+    text << "\tARcount: " << m_arCount << std::endl;
 
     return text.str();
 }
@@ -65,20 +64,20 @@ void Message::code_hdr(char* buffer) throw () {
 
 void Message::log_buffer(const char* buffer, int size) throw () {
 
-    ostringstream text;
+    std::ostringstream text;
 
-    text << "Message::log_buffer()" << endl;
-    text << "size: " << size << " bytes" << endl;
-    text << "---------------------------------" << setfill('0');
+    text << "Message::log_buffer()" << std::endl;
+    text << "size: " << size << " bytes" << std::endl;
+    text << "---------------------------------" << std::setfill('0');
 
     for (int i = 0; i < size; i++) {
         if ((i % 10) == 0) {
-            text << endl << setw(2) << i << ": ";
+            text << std::endl << std::setw(2) << i << ": ";
         }
         uchar c = buffer[i];
-        text << hex << setw(2) << int(c) << " " << dec;
+        text << std::hex << std::setw(2) << int(c) << " " << std::dec;
     }
-    text << endl << setfill(' ');
+    text << std::endl << std::setfill(' ');
     text << "---------------------------------";
 
     Logger& logger = Logger::instance();

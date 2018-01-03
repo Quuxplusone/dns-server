@@ -11,21 +11,20 @@
 #include "message.h"
 #include "response.h"
 
-using namespace std;
 using namespace dns;
 
-string Response::asString() const throw() {
+std::string Response::asString() const throw() {
 
-    ostringstream text;
-    text << endl << "RESPONSE { ";
+    std::ostringstream text;
+    text << std::endl << "RESPONSE { ";
     text << Message::asString();
 
-    text << "\tname: " << m_name << endl;
-    text << "\ttype: " << m_type << endl;
-    text << "\tclass: " << m_class << endl;
-    text << "\tttl: " << m_ttl << endl;
-    text << "\trdLength: " << m_rdLength << endl;
-    text << "\trdata: " << m_rdata << " }" << dec;
+    text << "\tname: " << m_name << std::endl;
+    text << "\ttype: " << m_type << std::endl;
+    text << "\tclass: " << m_class << std::endl;
+    text << "\tttl: " << m_ttl << std::endl;
+    text << "\trdLength: " << m_rdLength << std::endl;
+    text << "\trdata: " << m_rdata << " }" << std::dec;
 
     return text.str();
 }
@@ -68,7 +67,7 @@ void Response::code_domain(char*& buffer, const std::string& domain) throw() {
 
     int start(0), end; // indexes
 
-    while ((end = domain.find('.', start)) != string::npos) {
+    while ((end = domain.find('.', start)) != std::string::npos) {
 
         *buffer++ = end - start; // label length octet
         for (int i=start; i<end; i++) {

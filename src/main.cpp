@@ -10,22 +10,18 @@
 #include "application.h"
 #include "exception.h"
 
-using namespace std;
-/*
- *
- */
-int main(int argc, char** argv) {
-
+int main(int argc, char** argv)
+{
     try {
         dns::Application* application = new dns::Application();
         application->parse_arguments(argc, argv);
         application->run();
     }
     catch (dns::Exception& e) {
-        cout << e.what() << endl;
+        std::cout << e.what() << std::endl;
     }
-    catch (exception& e) {
-        cout << e.what() << endl;
+    catch (std::exception& e) {
+        std::cout << e.what() << std::endl;
     }
 
     return 0;
