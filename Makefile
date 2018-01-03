@@ -1,6 +1,5 @@
 SRCS = \
     src/application.cpp \
-    src/logger.cpp \
     src/main.cpp \
     src/message.cpp \
     src/query.cpp \

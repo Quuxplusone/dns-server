@@ -1,8 +1,6 @@
 #pragma once
 
 #include <fstream>
-#include <sstream>
-#include <string>
 
 namespace dns {
 
@@ -12,47 +10,34 @@ namespace dns {
  */
 class Logger {
 public:
-    /**
-     *  Instantiates the one and only Logger object.
-     *  @return A reference to the one and only Logger object.
-     */
-    static Logger& instance() noexcept;
+    template<class... Args>
+    static void trace(Args&&... args) {
+        instance().output_with_prefix(" ## ", std::forward<Args>(args)...);
+    }
 
-    /**
-     *  Trace the message text to the log file.
-     *  @param text Message text to log.
-     */
-    void trace(const char *text) noexcept;
-
-    /**
-     *  Trace the message text to the log file.
-     *  @param text Message text to log.
-     */
-    void trace(const std::string& text) noexcept;
-
-    /**
-     *  Trace the message text to the log file.
-     *  @param text Message text to log.
-     */
-    void trace(const std::ostringstream& text) noexcept;
-
-    /**
-     *  Trace the error message to the log file.
-     *  @param text Error message to log.
-     */
-    void error(const char *text) noexcept;
-
-    /**
-     *  Trace the error message to the log file.
-     *  @param text Error message to log.
-     */
-    void error(const std::string& text) noexcept;
+    template<class... Args>
+    static void error(Args&&... args) {
+        instance().output_with_prefix(" !! ", std::forward<Args>(args)...);
+    }
 
 private:
     template<class... Args>
     Logger(Args&&... args) : m_file(std::forward<Args>(args)...) {}
 
-    ~Logger() = default;
+    static Logger& instance() noexcept {
+        static Logger instance("dnsserver.log", std::ios::out|std::ios::trunc);
+        return instance;
+    }
+
+    template<class... Args>
+    void output_with_prefix(const char *prefix, Args&&... args) {
+        m_file << prefix;
+        int a[] = {
+            [&]() { m_file << std::forward<Args>(args); return 0; }()...
+        };
+        (void)a;
+        m_file << std::endl;
+    }
 
     std::ofstream m_file;
 };

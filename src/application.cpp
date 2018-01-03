@@ -27,8 +27,7 @@ void Application::parse_arguments(int argc, char **argv)
 
 void Application::run()
 {
-    Logger& logger = Logger::instance();
-    logger.trace("Application::run()");
+    Logger::trace("Application::run()");
 
     m_resolver.init(m_filename);
     m_server.init(m_port);

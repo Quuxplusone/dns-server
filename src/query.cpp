@@ -27,8 +27,7 @@ int Query::code(char* buffer) noexcept
 
 void Query::decode(const char* buffer, int size) noexcept
 {
-    Logger& logger = Logger::instance();
-    logger.trace("Query::decode()");
+    Logger::trace("Query::decode()");
     log_buffer(buffer, size);
 
     decode_hdr(buffer);

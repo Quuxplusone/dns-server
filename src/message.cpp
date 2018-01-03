@@ -73,8 +73,7 @@ void Message::log_buffer(const char* buffer, int size) noexcept
     text << std::endl << std::setfill(' ');
     text << "---------------------------------";
 
-    Logger& logger = Logger::instance();
-    logger.trace(text);
+    Logger::trace(text.str());
 }
 
 int Message::get16bits(const char*& buffer) noexcept

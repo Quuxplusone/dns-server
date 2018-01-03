@@ -12,8 +12,7 @@ using namespace dns;
 
 void Server::init(int port)
 {
-    Logger& logger = Logger::instance();
-    logger.trace("Server::init()");
+    Logger::trace("Server::init()");
 
     m_sockfd = socket(AF_INET, SOCK_DGRAM, 0);
 
@@ -32,8 +31,7 @@ void Server::init(int port)
 
 void Server::run() noexcept
 {
-    Logger& logger = Logger::instance();
-    logger.trace("Server::run()");
+    Logger::trace("Server::run()");
 
     std::cout << "DNS Server running..." << std::endl;
 

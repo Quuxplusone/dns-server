@@ -31,8 +31,7 @@ void Response::decode(const char *buffer, int size) noexcept
 
 int Response::code(char *buffer) noexcept
 {
-    Logger& logger = Logger::instance();
-    logger.trace("Response::code()");
+    Logger::trace("Response::code()");
 
     char *bufferBegin = buffer;
 
