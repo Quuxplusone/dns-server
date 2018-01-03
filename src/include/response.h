@@ -13,8 +13,14 @@ public:
     /**
      *  Response Code
      */
-    enum Code { Ok=0, FormatError, ServerFailure, NameError,
-                NotImplemented, Refused };
+    enum Code {
+        NOERROR = 0,
+        FORMERR = 1,
+        SERVFAIL = 2,
+        NXDOMAIN = 3,
+        NOTIMP = 4,
+        REFUSED = 5,
+    };
 
     /**
      *  Constructor.

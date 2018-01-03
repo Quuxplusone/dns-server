@@ -85,11 +85,11 @@ void Resolver::process(const Query& query, Response& response) noexcept
 
     if (domainName.empty()) {
         std::cout << "NameError" << std::endl;
-        response.setRCode(Response::NameError);
+        response.setRCode(Response::NXDOMAIN);
         response.setRdLength(1); // null label
     } else {
         std::cout << domainName << std::endl;
-        response.setRCode(Response::Ok);
+        response.setRCode(Response::NOERROR);
         response.setRdLength(domainName.size()+2); // + initial label length & null label
     }
 
