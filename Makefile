@@ -1,15 +1,32 @@
-SOURCEDIR = ./src
-CXXSOURCES = main.cpp application.cpp logger.cpp message.cpp query.cpp resolver.cpp response.cpp server.cpp
+SRCS = \
+    src/application.cpp \
+    src/logger.cpp \
+    src/main.cpp \
+    src/message.cpp \
+    src/query.cpp \
+    src/resolver.cpp \
+    src/response.cpp \
+    src/server.cpp
 
-CXXOBJECTS = $(CXXSOURCES:.cpp=.o)
-CXXFLAGS = -g $(INCLUDEDIRS)
-LDFLAGS = $(LIBDIRS) $(LIBS)
-		
-build: $(CXXOBJECTS)
-	$(CXX) -o dnsserver $(CXXOBJECTS) $(LDFLAGS)
+OBJS = $(patsubst %.cpp,.objs/cxx/%.o,$(SRCS))
+DEPS = $(patsubst %.cpp,.deps/cxx/%.d,$(SRCS))
 
-%.o: $(SOURCEDIR)/%.cpp
-	$(CXX) $(CXXFLAGS) -c -o $@ $<
+all: dnsserver
+
+ifneq ($(MAKECMDGOALS), clean)
+    -include $(DEPS)
+endif
+
+.deps/cxx/%.d: %.cpp
+	@mkdir -p $(shell dirname $@)
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -MM -MP -MT $(patsubst %.cpp,.objs/cxx/%.o,$<) $< -MF $@
+
+.objs/cxx/%.o: %.cpp .deps/cxx/%.d
+	@mkdir -p $(shell dirname $@)
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
+
+dnsserver: $(OBJS)
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
 clean:
-	rm -f $(CXXOBJECTS) dnsserver dnsserver.log
+	rm -rf .deps .objs dnsserver
