@@ -1,6 +1,7 @@
 #pragma once
 
 #include "message.h"
+#include "name.h"
 
 namespace dns {
 
@@ -22,29 +23,28 @@ public:
     Response() : Message(Message::Response) {}
 
     /**
-     *  Function that codes the response message in its format.
-     *  @param buffer The buffer to code the query into.
-     *  @return The size of the buffer coded
+     *  Function that encodes the response message into a packet.
+     *  @param buffer The buffer into which to encode the message.
+     *  @param end A pointer one past the end of the buffer.
+     *  @return A pointer one past the end of the encoded representation.
      */
-    int encode(char* buffer) noexcept;
+    char *encode(char *dst, const char *end) noexcept;
 
     void setRCode(Code code) noexcept { m_rcode = code; }
-    void setName(const std::string& value) noexcept { m_name = value; }
-    void setType(const uint value) noexcept { m_type = value; }
-    void setClass(const uint value) noexcept { m_class = value; }
-    void setTtl(const uint value) noexcept { m_ttl = value; }
-    void setRdLength(const uint value) noexcept { m_rdLength = value; }
-    void setRdata(const std::string& value) noexcept { m_rdata = value; }
+    void setName(const Name& value) noexcept { m_name = value; }
+    void setType(uint16_t value) noexcept { m_type = value; }
+    void setClass(uint16_t value) noexcept { m_class = value; }
+    void setTtl(uint32_t value) noexcept { m_ttl = value; }
+    void setRdLength(uint16_t value) noexcept { m_rdLength = value; }
+    void setRdata(const Name& value) noexcept { m_rdata = value; }
 
 private:
-    std::string m_name;
-    uint m_type;
-    uint m_class;
-    ulong m_ttl;
-    uint m_rdLength;
-    std::string m_rdata;
-
-    void encode_domain(char*& buffer, const std::string& domain) noexcept;
+    Name m_name;
+    uint16_t m_type;
+    uint16_t m_class;
+    uint32_t m_ttl;
+    uint16_t m_rdLength;
+    Name m_rdata;
 };
 
 } // namespace dns

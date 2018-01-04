@@ -3,6 +3,7 @@
 #include <string>
 
 #include "message.h"
+#include "name.h"
 
 namespace dns {
 
@@ -15,22 +16,21 @@ public:
     Query() : Message(Message::Query) {}
 
     /**
-     *  Function that decodes the query message in its format.
-     *  @param buffer The buffer to decode the query into.
-     *  @param size The size of the buffer to decode
+     *  Function that decodes a packet into a query message.
+     *  @param src The input data from which to decode the query.
+     *  @param end A pointer one past the end of the input data.
+     *  @return A pointer one past the end of the encoded representation.
      */
-    void decode(const char* buffer, int size) noexcept;
+    const char *decode(const char *src, const char *end);
 
-    const std::string& getQName() const noexcept { return m_qName; }
-    const uint getQType() const noexcept { return m_qType; }
-    const uint getQClass() const noexcept { return m_qClass; }
+    const Name& getQName() const noexcept { return m_qName; }
+    uint16_t getQType() const noexcept { return m_qType; }
+    uint16_t getQClass() const noexcept { return m_qClass; }
 
 private:
-    std::string m_qName;
-    uint m_qType;
-    uint m_qClass;
-
-    void decode_qname(const char*& buffer) noexcept;
+    Name m_qName;
+    uint16_t m_qType;
+    uint16_t m_qClass;
 };
 
 } // namespace dns

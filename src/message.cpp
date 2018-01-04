@@ -9,11 +9,12 @@
 
 using namespace dns;
 
-void Message::decode_hdr(const char *buffer) noexcept
+const char *Message::decode_hdr(const char *src, const char *end) noexcept
 {
-    m_id = get16bits(buffer);
+    src = get16bits(src, end, m_id);
 
-    uint fields = get16bits(buffer);
+    uint16_t fields = 0;
+    src = get16bits(src, end, fields);
     m_qr = fields & QR_MASK;
     m_opcode = fields & OPCODE_MASK;
     m_aa = fields & AA_MASK;
@@ -21,50 +22,61 @@ void Message::decode_hdr(const char *buffer) noexcept
     m_rd = fields & RD_MASK;
     m_ra = fields & RA_MASK;
 
-    m_qdCount = get16bits(buffer);
-    m_anCount = get16bits(buffer);
-    m_nsCount = get16bits(buffer);
-    m_arCount = get16bits(buffer);
+    src = get16bits(src, end, m_qdCount);
+    src = get16bits(src, end, m_anCount);
+    src = get16bits(src, end, m_nsCount);
+    src = get16bits(src, end, m_arCount);
+    return src;
 }
 
-void Message::encode_hdr(char *buffer) noexcept
+char *Message::encode_hdr(char *dst, const char *end) noexcept
 {
-    put16bits(buffer, m_id);
-
     int fields = (m_qr << 15);
-    fields += (m_opcode << 14);
-    //...
-    fields += m_rcode;
-    put16bits(buffer, fields);
+    fields |= (m_opcode << 14);
+    fields |= (m_aa << 10);
+    fields |= (m_tc << 9);
+    fields |= (m_rd << 8);
+    fields |= (m_ra << 7);
+    fields |= (m_rcode << 0);
 
-    put16bits(buffer, m_qdCount);
-    put16bits(buffer, m_anCount);
-    put16bits(buffer, m_nsCount);
-    put16bits(buffer, m_arCount);
+    dst = put16bits(dst, end, m_id);
+    dst = put16bits(dst, end, fields);
+    dst = put16bits(dst, end, m_qdCount);
+    dst = put16bits(dst, end, m_anCount);
+    dst = put16bits(dst, end, m_nsCount);
+    dst = put16bits(dst, end, m_arCount);
+    return dst;
 }
 
-int Message::get16bits(const char*& buffer) noexcept
+const char *Message::get16bits(const char *src, const char *end, uint16_t& value) noexcept
 {
-    int value = static_cast<uchar> (buffer[0]);
-    value = value << 8;
-    value += static_cast<uchar> (buffer[1]);
-    buffer += 2;
-
-    return value;
+    if (src == nullptr || src == end || src+1 == end) {
+        value = 0;
+        return nullptr;
+    }
+    value = (static_cast<uint8_t>(src[0]) << 8) | static_cast<uint8_t>(src[1]);
+    src += 2;
+    return src;
 }
 
-void Message::put16bits(char*& buffer, uint value) noexcept
+char *Message::put16bits(char *dst, const char *end, uint16_t value) noexcept
 {
-    buffer[0] = (value & 0xFF00) >> 8;
-    buffer[1] = value & 0xFF;
-    buffer += 2;
+    if (dst == nullptr || dst == end || dst+1 == end) {
+        return nullptr;
+    }
+    *dst++ = static_cast<uint8_t>(value >> 8);
+    *dst++ = static_cast<uint8_t>(value >> 0);
+    return dst;
 }
 
-void Message::put32bits(char*& buffer, ulong value) noexcept
+char *Message::put32bits(char *dst, const char *end, uint32_t value) noexcept
 {
-    buffer[0] = (value & 0xFF000000) >> 24;
-    buffer[1] = (value & 0xFF0000) >> 16;
-    buffer[2] = (value & 0xFF00) >> 16;
-    buffer[3] = (value & 0xFF) >> 16;
-    buffer += 4;
+    if (dst == nullptr || dst == end || dst+1 == end || dst+2 == end || dst+3 == end) {
+        return nullptr;
+    }
+    *dst++ = static_cast<uint8_t>(value >> 24);
+    *dst++ = static_cast<uint8_t>(value >> 16);
+    *dst++ = static_cast<uint8_t>(value >> 8);
+    *dst++ = static_cast<uint8_t>(value >> 0);
+    return dst;
 }

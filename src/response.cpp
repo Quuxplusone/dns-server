@@ -8,47 +8,22 @@
 
 using namespace dns;
 
-int Response::encode(char *buffer) noexcept
+char *Response::encode(char *dst, const char *end) noexcept
 {
-    char *bufferBegin = buffer;
+    dst = encode_hdr(dst, end);
 
-    encode_hdr(buffer);
-    buffer += HDR_OFFSET;
+    // Encode Question section
+    dst = m_name.encode(dst, end);
+    dst = put16bits(dst, end, m_type);
+    dst = put16bits(dst, end, m_class);
 
-    // Code Question section
-    encode_domain(buffer, m_name);
-    put16bits(buffer, m_type);
-    put16bits(buffer, m_class);
+    // Encode Answer section
+    dst = m_name.encode(dst, end);
+    dst = put16bits(dst, end, m_type);
+    dst = put16bits(dst, end, m_class);
+    dst = put32bits(dst, end, m_ttl);
+    dst = put16bits(dst, end, m_rdLength);
+    dst = m_rdata.encode(dst, end);
 
-    // Code Answer section
-    encode_domain(buffer, m_name);
-    put16bits(buffer, m_type);
-    put16bits(buffer, m_class);
-    put32bits(buffer, m_ttl);
-    put16bits(buffer, m_rdLength);
-    encode_domain(buffer, m_rdata);
-
-    int size = buffer - bufferBegin;
-    return size;
-}
-
-void Response::encode_domain(char *&buffer, const std::string& domain) noexcept
-{
-    int start = 0;
-    int end;
-
-    while ((end = domain.find('.', start)) != std::string::npos) {
-        *buffer++ = end - start; // label length octet
-        for (int i = start; i < end; ++i) {
-            *buffer++ = domain[i]; // label octets
-        }
-        start = end + 1; // Skip '.'
-    }
-
-    *buffer++ = domain.size() - start; // last label length octet
-    for (int i = start; i < domain.size(); ++i) {
-        *buffer++ = domain[i]; // last label octets
-    }
-
-    *buffer++ = '\0';
+    return dst;
 }

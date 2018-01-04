@@ -19,12 +19,18 @@ public:
         (void)a;
     }
 
-    const char *what() const noexcept {
+    const char *what() const noexcept override {
         return m_text.data();
     }
 
 private:
     std::string m_text;
+};
+
+class UnsupportedException : public Exception {
+public:
+    template<class... Args>
+    explicit UnsupportedException(Args&&... args) : Exception(std::forward<Args>(args)...) {}
 };
 
 } // namespace dns

@@ -1,6 +1,7 @@
 SRCS = \
     src/main.cpp \
     src/message.cpp \
+    src/name.cpp \
     src/query.cpp \
     src/resolver.cpp \
     src/response.cpp \

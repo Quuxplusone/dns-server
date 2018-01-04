@@ -43,17 +43,29 @@ void Server::run() noexcept
             reinterpret_cast<struct sockaddr *>(&clientAddress), &addrLen
         );
 
-        m_query.decode(buffer, nbytes);
+        const char *parsed = m_query.decode(buffer, buffer + nbytes);
+        if (parsed == nullptr) {
+            std::cout << "Failed to parse packet of length " << nbytes << std::endl;
+        } else {
+            if (parsed != buffer + nbytes) {
+                std::cout << "Packet of length " << nbytes
+                    << " parsed as message of length " << (parsed - buffer)
+                    << " with some trailing bytes" << std::endl;
+            }
 
-        m_resolver.process(m_query, m_response);
+            m_resolver.process(m_query, m_response);
 
-        nbytes = m_response.encode(buffer);
-
-        sendto(
-            m_sockfd,
-            buffer, nbytes,
-            0,
-            reinterpret_cast<struct sockaddr *>(&clientAddress), addrLen
-        );
+            const char *written = m_response.encode(buffer, buffer + sizeof buffer);
+            if (written == nullptr) {
+                std::cout << "Buffer wasn't long enough to encode response packet" << std::endl;
+            } else {
+                sendto(
+                    m_sockfd,
+                    buffer, (written - buffer),
+                    0,
+                    reinterpret_cast<struct sockaddr *>(&clientAddress), addrLen
+                );
+            }
+        }
     }
 }

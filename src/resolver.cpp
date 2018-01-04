@@ -66,7 +66,7 @@ std::string Resolver::find(const std::string& ipAddress) noexcept
 
 void Resolver::process(const Query& query, Response& response) noexcept
 {
-    std::string qName = query.getQName();
+    std::string qName = query.getQName().repr();
     std::string ipAddress = convert(qName);
     std::string domainName = find(ipAddress);
 
@@ -76,7 +76,6 @@ void Resolver::process(const Query& query, Response& response) noexcept
     response.setName(query.getQName());
     response.setType(query.getQType());
     response.setClass(query.getQClass());
-    response.setRdata(domainName);
 
     std::cout << std::endl << "Query for: " << ipAddress;
     std::cout << std::endl << "Response with: ";
@@ -84,10 +83,12 @@ void Resolver::process(const Query& query, Response& response) noexcept
     if (domainName.empty()) {
         std::cout << "NameError" << std::endl;
         response.setRCode(Response::NXDOMAIN);
+        response.setRdata(Name("."));
         response.setRdLength(1); // null label
     } else {
         std::cout << domainName << std::endl;
         response.setRCode(Response::NOERROR);
+        response.setRdata(Name(domainName.c_str()));
         response.setRdLength(domainName.size()+2); // + initial label length & null label
     }
 }
