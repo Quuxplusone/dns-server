@@ -1,15 +1,14 @@
 #pragma once
 
 #include "exception.h"
+#include "message.h"
+#include "question.h"
 
 #include <list>
 #include <string>
 #include <utility>
 
 namespace dns {
-
-class Query;
-class Response;
 
 /**
  *  Resolver is the class that handles the @ref Query and resolves the domain
@@ -29,7 +28,7 @@ public:
      *  @param query @ref Query that will be processed.
      *  @param response @ref Response that will be answered.
      */
-    void process(const Query& query, Response& response) noexcept;
+    Message produce_response(const Question& question);
 
     /**
      *  Prints all records from the list.

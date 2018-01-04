@@ -1,10 +1,11 @@
 SRCS = \
+    src/bytes.cpp \
     src/main.cpp \
     src/message.cpp \
     src/name.cpp \
-    src/query.cpp \
+    src/question.cpp \
     src/resolver.cpp \
-    src/response.cpp \
+    src/rr.cpp \
     src/server.cpp
 
 OBJS = $(patsubst %.cpp,.objs/cxx/%.o,$(SRCS))

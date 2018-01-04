@@ -1,82 +1,94 @@
 
-#include "logger.h"
+#include "bytes.h"
 #include "message.h"
-
-#include <iostream>
-#include <sstream>
-#include <iomanip>
-#include <netinet/in.h>
+#include "opcode.h"
+#include "rcode.h"
 
 using namespace dns;
 
-const char *Message::decode_hdr(const char *src, const char *end) noexcept
+void Message::setInResponseTo(const Message& q) noexcept
 {
+    m_id = q.m_id;
+    m_qr = true;
+    m_opcode = q.m_opcode;
+    m_aa = true;
+    m_rd = q.m_rd;
+    m_ra = false;
+}
+
+const char *Message::decode(const char *src, const char *end)
+{
+    uint16_t fields;
+    uint16_t qdcount, ancount, nscount, arcount;
+
     src = get16bits(src, end, m_id);
-
-    uint16_t fields = 0;
     src = get16bits(src, end, fields);
-    m_qr = fields & QR_MASK;
-    m_opcode = fields & OPCODE_MASK;
-    m_aa = fields & AA_MASK;
-    m_tc = fields & TC_MASK;
-    m_rd = fields & RD_MASK;
-    m_ra = fields & RA_MASK;
+    src = get16bits(src, end, qdcount);
+    src = get16bits(src, end, ancount);
+    src = get16bits(src, end, nscount);
+    src = get16bits(src, end, arcount);
 
-    src = get16bits(src, end, m_qdCount);
-    src = get16bits(src, end, m_anCount);
-    src = get16bits(src, end, m_nsCount);
-    src = get16bits(src, end, m_arCount);
+    if (src == nullptr) return nullptr;
+
+    m_qr = ((fields >> 15) & 0x1);
+    m_opcode = static_cast<Opcode>((fields >> 11) & 0xF);
+    m_aa = ((fields >> 10) & 0x1);
+    m_tc = ((fields >> 9) & 0x1);
+    m_rd = ((fields >> 8) & 0x1);
+    m_ra = ((fields >> 7) & 0x1);
+    m_rcode = static_cast<RCode>((fields >> 0) & 0x4);
+
+    for (uint16_t i=0; i < qdcount; ++i) {
+        m_question.emplace_back();
+        src = m_question.back().decode(src, end);
+        if (src == nullptr) return nullptr;
+    }
+    for (uint16_t i=0; i < ancount; ++i) {
+        m_answer.emplace_back();
+        src = m_answer.back().decode(src, end);
+        if (src == nullptr) return nullptr;
+    }
+    for (uint16_t i=0; i < nscount; ++i) {
+        m_authority.emplace_back();
+        src = m_authority.back().decode(src, end);
+        if (src == nullptr) return nullptr;
+    }
+    for (uint16_t i=0; i < arcount; ++i) {
+        m_additional.emplace_back();
+        src = m_additional.back().decode(src, end);
+        if (src == nullptr) return nullptr;
+    }
     return src;
 }
 
-char *Message::encode_hdr(char *dst, const char *end) noexcept
+char *Message::encode(char *dst, const char *end) const noexcept
 {
-    int fields = (m_qr << 15);
-    fields |= (m_opcode << 14);
-    fields |= (m_aa << 10);
-    fields |= (m_tc << 9);
-    fields |= (m_rd << 8);
-    fields |= (m_ra << 7);
-    fields |= (m_rcode << 0);
+    int fields = (int(m_qr) << 15);
+    fields |= (int(m_opcode) << 14);
+    fields |= (int(m_aa) << 10);
+    fields |= (int(m_tc) << 9);
+    fields |= (int(m_rd) << 8);
+    fields |= (int(m_ra) << 7);
+    fields |= (int(m_rcode) << 0);
 
     dst = put16bits(dst, end, m_id);
     dst = put16bits(dst, end, fields);
-    dst = put16bits(dst, end, m_qdCount);
-    dst = put16bits(dst, end, m_anCount);
-    dst = put16bits(dst, end, m_nsCount);
-    dst = put16bits(dst, end, m_arCount);
-    return dst;
-}
+    dst = put16bits(dst, end, m_question.size());
+    dst = put16bits(dst, end, m_answer.size());
+    dst = put16bits(dst, end, m_authority.size());
+    dst = put16bits(dst, end, m_additional.size());
 
-const char *Message::get16bits(const char *src, const char *end, uint16_t& value) noexcept
-{
-    if (src == nullptr || src == end || src+1 == end) {
-        value = 0;
-        return nullptr;
+    for (auto&& q : m_question) {
+        dst = q.encode(dst, end);
     }
-    value = (static_cast<uint8_t>(src[0]) << 8) | static_cast<uint8_t>(src[1]);
-    src += 2;
-    return src;
-}
-
-char *Message::put16bits(char *dst, const char *end, uint16_t value) noexcept
-{
-    if (dst == nullptr || dst == end || dst+1 == end) {
-        return nullptr;
+    for (auto&& rr : m_answer) {
+        dst = rr.encode(dst, end);
     }
-    *dst++ = static_cast<uint8_t>(value >> 8);
-    *dst++ = static_cast<uint8_t>(value >> 0);
-    return dst;
-}
-
-char *Message::put32bits(char *dst, const char *end, uint32_t value) noexcept
-{
-    if (dst == nullptr || dst == end || dst+1 == end || dst+2 == end || dst+3 == end) {
-        return nullptr;
+    for (auto&& rr : m_authority) {
+        dst = rr.encode(dst, end);
     }
-    *dst++ = static_cast<uint8_t>(value >> 24);
-    *dst++ = static_cast<uint8_t>(value >> 16);
-    *dst++ = static_cast<uint8_t>(value >> 8);
-    *dst++ = static_cast<uint8_t>(value >> 0);
+    for (auto&& rr : m_additional) {
+        dst = rr.encode(dst, end);
+    }
     return dst;
 }

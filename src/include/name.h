@@ -13,7 +13,7 @@ public:
     Name() = default;
     explicit Name(const char *repr);
 
-    char *encode(char *dst, const char *end) noexcept;
+    char *encode(char *dst, const char *end) const noexcept;
     const char *decode(const char *src, const char *end);
 
     std::string repr() const;

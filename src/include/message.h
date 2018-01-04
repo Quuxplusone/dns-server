@@ -1,97 +1,63 @@
 #pragma once
 
+#include "opcode.h"
+#include "question.h"
+#include "rcode.h"
+#include "rr.h"
+
 #include <inttypes.h>
 #include <string>
 
 namespace dns {
 
 /**
- *  Base class that represents the shared header of a DNS query or response.
+ *  Class that represents a DNS message (a query or a response).
  */
 class Message {
 public:
-    enum QR {
-        Query = 0,
-        Response = 1,
-    };
+    explicit Message() = default;
 
-    uint16_t getID() const noexcept { return m_id; }
-    uint16_t getQdCount() const noexcept { return m_qdCount; }
-    uint16_t getAnCount() const noexcept { return m_anCount; }
-    uint16_t getNsCount() const noexcept { return m_nsCount; }
-    uint16_t getArCount() const noexcept { return m_arCount; }
+    bool is_query() const noexcept { return !m_qr; }
+    bool is_response() const noexcept { return m_qr; }
+    const std::vector<Question>& questions() const noexcept { return m_question; }
 
-    void setID(uint16_t id) noexcept { m_id = id; }
-    void setQdCount(uint16_t count) noexcept { m_qdCount = count; }
-    void setAnCount(uint16_t count) noexcept { m_anCount = count; }
-    void setNsCount(uint16_t count) noexcept { m_nsCount = count; }
-    void setArCount(uint16_t count) noexcept { m_arCount = count; }
-
-protected:
-    uint16_t m_id;
-    uint16_t m_qr;
-    uint16_t m_opcode;
-    uint16_t m_aa;
-    uint16_t m_tc;
-    uint16_t m_rd;
-    uint16_t m_ra;
-    uint16_t m_rcode;
-
-    uint16_t m_qdCount;
-    uint16_t m_anCount;
-    uint16_t m_nsCount;
-    uint16_t m_arCount;
-
-    explicit Message(QR qr) noexcept : m_qr(qr) {}
+    void setInResponseTo(const Message& q) noexcept;
+    void setRCode(RCode rcode) noexcept { m_rcode = rcode; }
+    void add_question(Question q) { m_question.emplace_back(std::move(q)); }
+    void add_answer(RR rr) { m_answer.emplace_back(std::move(rr)); }
+    void add_authority(RR rr) { m_authority.emplace_back(std::move(rr)); }
+    void add_additional(RR rr) { m_additional.emplace_back(std::move(rr)); }
 
     /**
-     *  Function that decodes the DNS message header section.
-     *  @param src The input data from which to decode the message header.
+     *  Function that decodes a DNS message.
+     *  @param src The input data from which to decode the message.
      *  @param end A pointer one past the end of the input data.
      *  @return A pointer one past the end of the encoded representation.
      */
-    const char *decode_hdr(const char *src, const char *end) noexcept;
+    const char *decode(const char *src, const char *end);
 
     /**
-     *  Function that codes the DNS message header section.
-     *  @param dst The buffer to code the message header into.
+     *  Function that encodes a DNS message.
+     *  @param dst The buffer into which to encode the message.
      *  @param end A pointer one past the end of the buffer.
      *  @return A pointer one past the end of the encoded representation.
      */
-    char *encode_hdr(char *dst, const char *end) noexcept;
-
-    /**
-     *  Helper function that get 16 bits from the buffer and keeps it an int.
-     *  It helps in compatibility issues as ntohs()
-     *  @param buffer The buffer to get the 16 bits from.
-     *  @return An int holding the value extracted.
-     */
-    const char *get16bits(const char *src, const char *end, uint16_t& value) noexcept;
-
-    /**
-     *  Helper function that puts 16 bits into the buffer.
-     *  It helps in compatibility issues as htons()
-     *  @param buffer The buffer to put the 16 bits into.
-     *  @param value An unsigned int holding the value to set the buffer.
-     */
-    char *put16bits(char *dst, const char *end, uint16_t value) noexcept;
-
-    /**
-     *  Helper function that puts 32 bits into the buffer.
-     *  It helps in compatibility issues as htonl()
-     *  @param buffer The buffer to put the 32 bits into.
-     *  @param value An unsigned long holding the value to set the buffer.
-     */
-    char *put32bits(char *dst, const char *end, uint32_t value) noexcept;
+    char *encode(char *dst, const char *end) const noexcept;
 
 private:
-    static const uint16_t QR_MASK = 0x8000;
-    static const uint16_t OPCODE_MASK = 0x7800;
-    static const uint16_t AA_MASK = 0x0400;
-    static const uint16_t TC_MASK = 0x0200;
-    static const uint16_t RD_MASK = 0x0100;
-    static const uint16_t RA_MASK = 0x8000;
-    static const uint16_t RCODE_MASK = 0x000F;
+    uint16_t m_id = 0;
+    bool m_qr = false;
+    Opcode m_opcode = Opcode::QUERY;
+    bool m_aa = false;
+    bool m_tc = false;
+    bool m_rd = false;
+    bool m_ra = false;
+    RCode m_rcode = RCode::NOERROR;
+
+    std::vector<Question> m_question;
+    std::vector<RR> m_answer;
+    std::vector<RR> m_authority;
+    std::vector<RR> m_additional;
 };
 
 } // namespace dns

@@ -1,12 +1,14 @@
 
-#include "logger.h"
-#include "server.h"
+#include "message.h"
+#include "question.h"
 #include "resolver.h"
+#include "server.h"
 
 #include <iostream>
-#include <cstring>
-#include <sys/socket.h>
 #include <errno.h>
+#include <netinet/in.h>
+#include <string.h>
+#include <sys/socket.h>
 
 using namespace dns;
 
@@ -27,37 +29,43 @@ void Server::bind_to(int port)
 
 void Server::run() noexcept
 {
-    Logger::trace("Server::run()");
-
     std::cout << "DNS Server running..." << std::endl;
 
-    char buffer[BUFFER_SIZE];
     struct sockaddr_in clientAddress;
     socklen_t addrLen = sizeof clientAddress;
 
     while (true) {
-        int nbytes = recvfrom(
-            m_sockfd,
-            buffer, sizeof buffer,
-            0,
-            reinterpret_cast<struct sockaddr *>(&clientAddress), &addrLen
-        );
+        Message query;
 
-        const char *parsed = m_query.decode(buffer, buffer + nbytes);
-        if (parsed == nullptr) {
-            std::cout << "Failed to parse packet of length " << nbytes << std::endl;
-        } else {
+        auto read_in = [&]() -> bool {
+            char buffer[1024];
+            int nbytes = recvfrom(
+                m_sockfd,
+                buffer, sizeof buffer,
+                0,
+                reinterpret_cast<struct sockaddr *>(&clientAddress), &addrLen
+            );
+            const char *parsed = query.decode(buffer, buffer + nbytes);
+            if (parsed == nullptr) {
+                std::cout << "Failed to parse packet of length " << nbytes << std::endl;
+                return false;
+            }
             if (parsed != buffer + nbytes) {
                 std::cout << "Packet of length " << nbytes
                     << " parsed as message of length " << (parsed - buffer)
                     << " with some trailing bytes" << std::endl;
             }
-
-            m_resolver.process(m_query, m_response);
-
-            const char *written = m_response.encode(buffer, buffer + sizeof buffer);
+            return true;
+        };
+        auto write_out = [&](const Message& response) {
+            char buffer[512];
+            const char *written = response.encode(buffer, buffer + sizeof buffer);
             if (written == nullptr) {
                 std::cout << "Buffer wasn't long enough to encode response packet" << std::endl;
+                for (int i=0; i < 512; ++i) {
+                    printf(" %02x", (uint8_t)buffer[i]);
+                    if (i % 8 == 7) printf("\n");
+                }
             } else {
                 sendto(
                     m_sockfd,
@@ -65,6 +73,20 @@ void Server::run() noexcept
                     0,
                     reinterpret_cast<struct sockaddr *>(&clientAddress), addrLen
                 );
+            }
+        };
+        if (read_in()) {
+            if (query.is_response()) {
+                std::cout << "Packet was an unsolicited response, not a query" << std::endl;
+            } else if (query.questions().size() == 0) {
+                std::cout << "Query contained no questions in question section" << std::endl;
+            } else if (query.questions().size() >= 2) {
+                std::cout << "Query contained multiple questions in question section" << std::endl;
+            } else {
+                const Question& q = query.questions().front();
+                Message response = m_resolver.produce_response(q);
+                response.setInResponseTo(query);
+                write_out(response);
             }
         }
     }

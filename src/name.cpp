@@ -113,7 +113,7 @@ std::string Name::repr() const
     }
 }
 
-char *Name::encode(char *dst, const char *end) noexcept
+char *Name::encode(char *dst, const char *end) const noexcept
 {
     if (dst == nullptr) return nullptr;
     for (auto&& label : m_labels) {

@@ -1,18 +1,12 @@
 #pragma once
 
-#include <netinet/in.h>
-
-#include "query.h"
-#include "response.h"
+#include "resolver.h"
 
 namespace dns {
 
-class Resolver;
-
 /**
- *  Server class is a socket server that receive queries and answer responses to
- *  those queries. It has a @ref Query and a @ref Response class attributtes to
- *  code and decode the messages received on the socket buffer.
+ *  Server class is a socket server that receives queries and responds to
+ *  those queries.
  */
 class Server {
 public:
@@ -40,8 +34,6 @@ private:
     static const int BUFFER_SIZE = 1024;
 
     int m_sockfd;
-    Query m_query;
-    Response m_response;
     Resolver& m_resolver;
 };
 

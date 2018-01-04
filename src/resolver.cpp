@@ -1,8 +1,8 @@
 
 #include "logger.h"
+#include "message.h"
+#include "question.h"
 #include "resolver.h"
-#include "query.h"
-#include "response.h"
 
 #include <fstream>
 #include <iostream>
@@ -64,33 +64,37 @@ std::string Resolver::find(const std::string& ipAddress) noexcept
     return domainName;
 }
 
-void Resolver::process(const Query& query, Response& response) noexcept
+Message Resolver::produce_response(const Question& question)
 {
-    std::string qName = query.getQName().repr();
+    std::string qName = question.qname().repr();
     std::string ipAddress = convert(qName);
     std::string domainName = find(ipAddress);
 
-    response.setID(query.getID());
-    response.setQdCount(1);
-    response.setAnCount(1);
-    response.setName(query.getQName());
-    response.setType(query.getQType());
-    response.setClass(query.getQClass());
+    Message response;
+    response.add_question(Question(
+        question.qname(),
+        question.qtype(),
+        question.qclass()
+    ));
 
     std::cout << std::endl << "Query for: " << ipAddress;
     std::cout << std::endl << "Response with: ";
 
     if (domainName.empty()) {
         std::cout << "NameError" << std::endl;
-        response.setRCode(Response::NXDOMAIN);
-        response.setRdata(Name("."));
-        response.setRdLength(1); // null label
+        response.setRCode(RCode::NXDOMAIN);
     } else {
         std::cout << domainName << std::endl;
-        response.setRCode(Response::NOERROR);
-        response.setRdata(Name(domainName.c_str()));
-        response.setRdLength(domainName.size()+2); // + initial label length & null label
+        response.setRCode(RCode::NOERROR);
+        response.add_answer(RR(
+            question.qname(),
+            5, // question.qtype(),
+            question.qclass(),
+            30,         // TTL
+            std::string("\x03www\x06google\x03com\x00", 16)  // RDATA
+        ));
     }
+    return response;
 }
 
 std::string Resolver::convert(const std::string& qName) noexcept
