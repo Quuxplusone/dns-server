@@ -38,6 +38,9 @@ const char *Name::decode_repr(const char *repr, const char *end)
             }
             break;
         }
+        if (isspace(*p) && !saw_double_quotes) {
+            break;
+        }
         if (*p == '.') {
             if (!m_labels.empty() && m_labels.back().empty()) {
                 throw dns::Exception("name contains an empty label");
@@ -60,7 +63,7 @@ const char *Name::decode_repr(const char *repr, const char *end)
             ++p;
             break;
         } else if (!saw_double_quotes && !can_appear_unquoted_in_label(*p)) {
-            throw dns::Exception("unusual name requires double quotes");
+            throw dns::Exception("unusual name " + std::string(repr, p) + " requires double quotes");
         } else {
             current_label += (*p);
             if (current_label.size() > 63) {
@@ -70,10 +73,13 @@ const char *Name::decode_repr(const char *repr, const char *end)
         ++p;
     }
     if (current_label != "") {
-        throw dns::UnsupportedException("name without trailing dot is confusing");
+        throw dns::UnsupportedException("name " + std::string(repr, p) + " without trailing dot is confusing");
     }
     if (m_labels.empty()) {
         throw dns::Exception("empty name is not allowed; did you mean \".\"?");
+    }
+    if (!m_labels.back().empty()) {
+        m_labels.emplace_back("");
     }
     return p;
 }
@@ -97,7 +103,7 @@ std::string Name::repr() const
     std::string result;
     for (auto&& label : m_labels) {
         result += repr_of_label(label);
-        result += '.';
+        if (!label.empty()) result += '.';
     }
     bool require_double_quotes = false;
     for (char ch : result) {

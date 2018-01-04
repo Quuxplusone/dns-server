@@ -1,8 +1,10 @@
 
-#include "logger.h"
+#include "exception.h"
 #include "message.h"
 #include "question.h"
 #include "resolver.h"
+#include "rr.h"
+#include "rrtype.h"
 
 #include <fstream>
 #include <iostream>
@@ -20,95 +22,42 @@ Resolver::Resolver(const std::string& filename)
     std::string line;
     while (!file.eof()) {
         std::getline(file, line);
-        store(line);
-    }
-}
-
-void Resolver::store(const std::string& line) noexcept
-{
-    std::string::size_type ipAddressEndPos = line.find_first_of(" ");
-    if (ipAddressEndPos == std::string::npos) return;
-
-    std::string::size_type domainNameStartPos = line.find_last_of(" ");
-    if (domainNameStartPos == std::string::npos) return;
-    domainNameStartPos += 1;
-
-    std::string ipAddress(line, 0, ipAddressEndPos);
-    std::string domainName(line, domainNameStartPos, line.length());
-
-    m_record_list.emplace_back(ipAddress, domainName);
-}
-
-void Resolver::print_records() noexcept
-{
-    if (m_record_list.empty()) {
-        std::cout << "No records on list." << std::endl;
-    } else {
-        for (auto&& record : m_record_list) {
-            std::cout << "Record: " << record.ipAddress.data();
-            std::cout << " - " << record.domainName.data() << std::endl;
+        if (line.empty()) continue;
+        RR rr;
+        const char *end = line.data() + line.size();
+        const char *p = rr.decode_repr(line.data(), end);
+        if (p != end) {
+            throw dns::Exception("Zonefile RR contained trailing characters");
         }
+        m_rr_list.emplace_back(std::move(rr));
     }
 }
 
-std::string Resolver::find(const std::string& ipAddress) noexcept
+void Resolver::print_records() const
 {
-    std::string domainName;
-    for (auto&& record : m_record_list) {
-        if (record.ipAddress == ipAddress) {
-            domainName = record.domainName;
-            break;
-        }
+    for (auto&& rr : m_rr_list) {
+        std::cout << rr.repr() << std::endl;
     }
-    Logger::trace("Resolver::find() | ipAddress: ", ipAddress, " ---> ", domainName);
-    return domainName;
 }
 
 Message Resolver::produce_response(const Question& question)
 {
-    std::string qName = question.qname().repr();
-    std::string ipAddress = convert(qName);
-    std::string domainName = find(ipAddress);
-
     Message response;
     response.add_question(Question(
         question.qname(),
         question.qtype(),
         question.qclass()
     ));
+    response.setRCode(RCode::NXDOMAIN);
 
-    std::cout << std::endl << "Query for: " << ipAddress;
-    std::cout << std::endl << "Response with: ";
-
-    if (domainName.empty()) {
-        std::cout << "NameError" << std::endl;
-        response.setRCode(RCode::NXDOMAIN);
-    } else {
-        std::cout << domainName << std::endl;
-        response.setRCode(RCode::NOERROR);
-        response.add_answer(RR(
-            question.qname(),
-            5, // question.qtype(),
-            question.qclass(),
-            30,         // TTL
-            std::string("\x03www\x06google\x03com\x00", 16)  // RDATA
-        ));
+    for (auto&& rr : m_rr_list) {
+        if (rr.getName() == question.qname()) {
+            if (question.qtype() == rr.getType() || question.qtype() == RRType::ANY) {
+                // This RR is relevant!
+                response.setRCode(RCode::NOERROR);
+                response.add_answer(rr);
+            }
+        }
     }
     return response;
-}
-
-std::string Resolver::convert(const std::string& qName) noexcept
-{
-    int pos = qName.find(".in-addr.arpa");
-    if (pos == std::string::npos) return "";
-
-    std::string tmp(qName, 0, pos);
-    std::string ipAddress;
-    while ((pos = tmp.rfind('.')) != std::string::npos) {
-        ipAddress.append(tmp, pos+1, tmp.size());
-        ipAddress += '.';
-        tmp.erase(pos, tmp.size());
-    }
-    ipAddress += tmp;
-    return ipAddress;
 }

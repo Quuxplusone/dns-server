@@ -1,0 +1,6 @@
+
+localhost.          86400 IN A   127.0.0.1
+www.ericsson.es.       30 IN A   193.180.17.140
+www.google.com.        30 IN A   209.85.227.103
+www.microsoft.com.     30 IN A   65.55.21.250
+www.apple.com.         30 IN A   17.112.152.32

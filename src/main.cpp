@@ -16,20 +16,20 @@ int main(int argc, char **argv)
 {
     if (argc != 3) {
         exit_with_message(
-            "Usage: dnsServer <port> <hostsFile>\n"
-            "Example: dnsServer 9000 hosts\n"
+            "Usage: dnsServer <port> <zonefile>\n"
+            "Example: dnsServer 9000 zone.txt\n"
         );
     }
 
     int port = atoi(argv[1]);
-    std::string hosts_file = argv[2];
+    std::string zonefile = argv[2];
 
     if (port < 1 || port > 65535) {
         exit_with_message("Error: Invalid port number.\n");
     }
 
     try {
-        dns::Resolver resolver(hosts_file);
+        dns::Resolver resolver(zonefile);
         resolver.print_records();
         dns::Server server(resolver);
         server.bind_to(port);

@@ -1,12 +1,11 @@
 #pragma once
 
-#include "exception.h"
 #include "message.h"
 #include "question.h"
+#include "rr.h"
 
 #include <list>
 #include <string>
-#include <utility>
 
 namespace dns {
 
@@ -18,61 +17,24 @@ namespace dns {
 class Resolver {
 public:
     /**
-     *  Open the hosts file and read it to stores the ipAddress-hostname pairs.
-     *  @param filename Name of the file containing the pairs.
+     *  Open the zonefile and read it to initialize the database.
+     *  @param filename Name of the file containing the zone data.
      */
     explicit Resolver(const std::string& filename);
 
     /**
-     *  Process the query and sets the response to that query. @ref Record
-     *  @param query @ref Query that will be processed.
-     *  @param response @ref Response that will be answered.
+     *  Process the query and produce a response.
+     *  @param question @ref Question that will be processed.
      */
     Message produce_response(const Question& question);
 
     /**
      *  Prints all records from the list.
      */
-    void print_records() noexcept;
+    void print_records() const;
 
-protected:
-    /**
-     *  Extracts the ipAddress-hostname pair from a string line and adds it to
-     *  the list of records.
-     *  @param line Line read from the hosts file containing the ipAddress-hostname info
-     */
-    void store(const std::string& line) noexcept;
-
-    /**
-     *  Structure to hold the ipAddress-hostname pairs.
-     */
-    struct Record {
-        std::string ipAddress;  // IP address in dot notation
-        std::string domainName;
-
-        Record() = default;
-        Record(std::string ip, std::string domain) :
-            ipAddress(std::move(ip)), domainName(std::move(domain)) { }
-    };
-
-    /**
-     *  Convert IN-ADDR.ARPA domain to an IP address in dot notation
-     *  @param domain The domain name
-     *  @return The IP addrress formatted in dot notation.
-     */
-    std::string convert(const std::string& domain) noexcept;
-
-    /**
-     *  Finds in the list the domanin corresponding to the ipAddress
-     *  @param ipAddress IP addrress in dot notation
-     *  @return The domain name found. An empty string if no domain was found.
-     */
-    std::string find(const std::string& ipAddress) noexcept;
-
-    /**
-     *  Pointer to the start of the list of records.
-     */
-    std::list<Record> m_record_list;
+private:
+    std::list<RR> m_rr_list;
 };
 
 } // namespace dns

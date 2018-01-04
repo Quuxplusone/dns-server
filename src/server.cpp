@@ -1,4 +1,5 @@
 
+#include "exception.h"
 #include "message.h"
 #include "question.h"
 #include "resolver.h"
@@ -62,10 +63,6 @@ void Server::run() noexcept
             const char *written = response.encode(buffer, buffer + sizeof buffer);
             if (written == nullptr) {
                 std::cout << "Buffer wasn't long enough to encode response packet" << std::endl;
-                for (int i=0; i < 512; ++i) {
-                    printf(" %02x", (uint8_t)buffer[i]);
-                    if (i % 8 == 7) printf("\n");
-                }
             } else {
                 sendto(
                     m_sockfd,
