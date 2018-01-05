@@ -23,6 +23,7 @@ public:
 
     void setInResponseTo(const Message& q) noexcept;
     void setRCode(RCode rcode) noexcept { m_rcode = rcode; }
+    void setAA(bool aa) noexcept { m_aa = aa; }
     void add_question(Question q) { m_question.emplace_back(std::move(q)); }
     void add_answer(RR rr) { m_answer.emplace_back(std::move(rr)); }
     void add_authority(RR rr) { m_authority.emplace_back(std::move(rr)); }

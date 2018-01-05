@@ -20,8 +20,10 @@ public:
 
     const Name& name() const noexcept { return m_name; }
     uint16_t rrtype() const noexcept { return m_rrtype; }
+    bool is_SOA_record() const noexcept { return m_rrtype == RRType::SOA; }
+    bool is_NS_record() const noexcept { return m_rrtype == RRType::NS; }
 
-    void setName(Name name) { m_name = std::move(name); }
+    void set_name(Name name) { m_name = std::move(name); }
 
     const char *decode(const char *src, const char *end);
     char *encode(char *dst, const char *end) const noexcept;

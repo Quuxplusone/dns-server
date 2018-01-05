@@ -51,7 +51,28 @@ void Resolver::print_records() const
     v.visit(m_root);
 }
 
-void Resolver::populate_response(const Question& question, Message& response)
+void Resolver::add_SOA_to_authority_section(const DomainTreeNode *node, Message& response) const
+{
+    assert(node->is_top_of_zone());
+    for (auto&& rr : node->m_rr_list) {
+        if (rr.is_SOA_record()) {
+            response.add_authority(rr);
+            break;
+        }
+    }
+}
+
+void Resolver::populate_with_referral(const DomainTreeNode *zone_cut_node, Message& response) const
+{
+    for (auto&& rr : zone_cut_node->m_rr_list) {
+        if (rr.is_NS_record()) {
+            response.add_authority(rr);
+            // TODO: add A and AAAA "glue" to the "additional" section
+        }
+    }
+}
+
+void Resolver::populate_response(const Question& question, Message& response) const
 {
     response.add_question(Question(
         question.qname(),
@@ -62,10 +83,21 @@ void Resolver::populate_response(const Question& question, Message& response)
     const Name& name = question.qname();
     assert(name.labels().back().empty());
 
-    DomainTreeNode *node = &m_root;
-    bool found_nxdomain = false;
+    const DomainTreeNode *node = &m_root;
+    const DomainTreeNode *last_zone_cut_node = nullptr;
+    const DomainTreeNode *last_top_of_zone_node = nullptr;
+    bool in_authoritative_zone = false;
+    bool found_nothing_in_tree = false;
     bool found_wildcard = false;
     for (auto&& label : nonstd::drop(1, nonstd::reversed(name.labels()))) {
+        if (node->is_top_of_zone()) {
+            in_authoritative_zone = true;
+            last_top_of_zone_node = node;
+        } else if (node->is_zone_cut()) {
+            // RC 1034, section 4.2.1: the zone cut's NS records themselves are not authoritative
+            in_authoritative_zone = false;
+            last_zone_cut_node = node;
+        }
         // RFC 1034, section 4.3.2, step 3
         auto it = node->m_children.find(label);
         if (it != node->m_children.end()) {
@@ -77,26 +109,33 @@ void Resolver::populate_response(const Question& question, Message& response)
         if (star != node->m_children.end()) {
             node = &star->second;
             found_wildcard = true;
-            break;
         } else {
-            found_nxdomain = true;
-            break;
+            found_nothing_in_tree = true;
         }
+        break;
     }
 
-    if (found_nxdomain) {
-        response.setRCode(RCode::NXDOMAIN);
-    } else if (node->m_is_nxdomain) {
+    assert(node != nullptr);
+    response.setAA(in_authoritative_zone);
+    if (!in_authoritative_zone && last_zone_cut_node != nullptr) {
+        // RFC 1034, section 4.3.2, step 3b: respond with a referral
+        // RFC 4592, section 4.2: it does not matter if the zone name in question is a wildcard
+        response.setRCode(RCode::NOERROR);
+        populate_with_referral(last_zone_cut_node, response);
+    } else if (found_nothing_in_tree) {
+        if (in_authoritative_zone) {
+            add_SOA_to_authority_section(last_top_of_zone_node, response);
+        }
         response.setRCode(RCode::NXDOMAIN);
     } else {
-        assert(node != nullptr);
+        // We found either the qname, or a wildcard matching the qname.
         response.setRCode(RCode::NOERROR);
         for (auto&& rr : node->m_rr_list) {
             if (question.qtype() == rr.rrtype() || question.qtype() == RRType::ANY) {
                 // This RR is relevant!
                 RR modified_rr = rr;
                 if (found_wildcard) {
-                    modified_rr.setName(question.qname());
+                    modified_rr.set_name(question.qname());
                 }
                 response.add_answer(std::move(modified_rr));
             }
@@ -106,11 +145,14 @@ void Resolver::populate_response(const Question& question, Message& response)
 
 void Resolver::add_rr(RR rr)
 {
+    bool is_SOA = rr.is_SOA_record();
+    bool is_NS = rr.is_NS_record();
     DomainTreeNode *node = &m_root;
     const Name& name = rr.name();
     for (auto&& label : nonstd::drop(1, nonstd::reversed(name.labels()))) {
         node = &node->m_children[label];
     }
     node->m_rr_list.emplace_back(std::move(rr));
-    node->m_is_nxdomain = false;
+    if (is_SOA) node->m_has_SOA_record = true;
+    if (is_NS) node->m_has_NS_record = true;
 }

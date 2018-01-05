@@ -15,10 +15,14 @@ class DomainTreeNode {
 public:
     DomainTreeNode() = default;
 
+    bool is_top_of_zone() const noexcept { return m_has_SOA_record; }
+    bool is_zone_cut() const noexcept { return m_has_NS_record && !m_has_SOA_record; }
+
 private:
     friend class Resolver;
 
-    bool m_is_nxdomain = true;
+    bool m_has_SOA_record = false;
+    bool m_has_NS_record = false;
     std::map<Label, DomainTreeNode> m_children;
     std::list<RR> m_rr_list;
 };
@@ -40,7 +44,7 @@ public:
      *  Process the query and produce a response.
      *  @param question @ref Question that will be processed.
      */
-    void populate_response(const Question& question, Message& response);
+    void populate_response(const Question& question, Message& response) const;
 
     /**
      *  Prints all records from the list.
@@ -49,6 +53,8 @@ public:
 
 private:
     void add_rr(RR rr);
+    void add_SOA_to_authority_section(const DomainTreeNode *node, Message& response) const;
+    void populate_with_referral(const DomainTreeNode *zone_cut_node, Message& response) const;
 
     DomainTreeNode m_root;
 };
