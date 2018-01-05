@@ -178,7 +178,7 @@ const char *Name::decode(const char *src, const char *end)
         } else if ((length & 0xC0) == 0xC0) {
             throw dns::UnsupportedException("name field uses POINTER encoding scheme");
         } else {
-            throw dns::Exception("name field uses an unsupported encoding scheme");
+            throw dns::Exception("name field uses an unrecognized encoding scheme");
         }
     } while (length != 0);
     return src;

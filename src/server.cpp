@@ -46,7 +46,12 @@ void Server::run() noexcept
                 0,
                 reinterpret_cast<struct sockaddr *>(&clientAddress), &addrLen
             );
-            const char *parsed = query.decode(buffer, buffer + nbytes);
+            const char *parsed = nullptr;
+            try {
+                parsed = query.decode(buffer, buffer + nbytes);
+            } catch (const dns::Exception& e) {
+                std::cout << "During packet decode: " << e.what() << std::endl;
+            }
             if (parsed == nullptr) {
                 std::cout << "Failed to parse packet of length " << nbytes << std::endl;
                 return false;

@@ -200,6 +200,7 @@ const char *RR::decode_repr(const char *src, const char *end)
     success = false;
     for (auto&& rrt : by_rrtype) {
         if (rrt.str != nullptr && m[3].compare(rrt.str) == 0) {
+            assert(rrt.decode_rdata_repr != nullptr);
             m_type = rrt.type;
             m_rdata = rrt.decode_rdata_repr(m[4].first, m[4].second);
             success = true;
@@ -226,6 +227,7 @@ std::string RR::repr() const
     bool success = false;
     for (auto&& rrt : by_rrtype) {
         if (rrt.str != nullptr && rrt.type == m_type) {
+            assert(rrt.encode_rdata_repr != nullptr);
             result += rrt.str;
             do { result += ' '; } while ((result.size() % 8) != 0);
             result += rrt.encode_rdata_repr(m_rdata);
