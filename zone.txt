@@ -1,6 +1,14 @@
 
-localhost.          86400 IN A   127.0.0.1
-www.ericsson.es.       30 IN A   193.180.17.140
-www.google.com.        30 IN A   209.85.227.103
-www.microsoft.com.     30 IN A   65.55.21.250
-www.apple.com.         30 IN A   17.112.152.32
+localhost.                     86400   IN A       127.0.0.1
+www.apple.com.                 30      IN A       17.112.152.32
+www.ericsson.es.               30      IN A       193.180.17.140
+www.google.com.                30      IN A       209.85.227.103
+www.google.com.                30      IN A       216.58.217.196
+www.microsoft.com.             30      IN A       65.55.21.250
+
+1.0.0.127.in-addr.arpa.        86400   IN PTR     localhost.
+103.227.85.209.in-addr.arpa.   30      IN PTR     www.google.com.
+196.217.58.216.in-addr.arpa.   30      IN PTR     www.google.com.
+140.17.180.193.in-addr.arpa.   30      IN PTR     www.ericsson.es.
+250.21.55.65.in-addr.arpa.     30      IN PTR     www.microsoft.com.
+32.152.112.17.in-addr.arpa.    30      IN PTR     www.apple.com.
