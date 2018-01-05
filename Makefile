@@ -12,7 +12,7 @@ OBJS = $(patsubst %.cpp,.objs/cxx/%.o,$(SRCS))
 DEPS = $(patsubst %.cpp,.deps/cxx/%.d,$(SRCS))
 
 CPPFLAGS += -I src/include
-CXXFLAGS += -std=c++11
+CXXFLAGS += -std=c++11 -O2 -W -Wall -Wextra -pedantic -Werror -Wno-sign-compare
 
 all: dnsserver
 
