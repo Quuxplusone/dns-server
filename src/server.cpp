@@ -81,8 +81,9 @@ void Server::run() noexcept
                 std::cout << "Query contained multiple questions in question section" << std::endl;
             } else {
                 const Question& q = query.questions().front();
-                Message response = m_resolver.produce_response(q);
+                Message response;
                 response.setInResponseTo(query);
+                m_resolver.populate_response(q, response);
                 write_out(response);
             }
         }

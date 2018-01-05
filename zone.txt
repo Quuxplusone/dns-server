@@ -5,6 +5,7 @@ www.ericsson.es.               30      IN A       193.180.17.140
 www.google.com.                30      IN A       209.85.227.103
 www.google.com.                30      IN A       216.58.217.196
 www.microsoft.com.             30      IN A       65.55.21.250
+*.example.com.                 30      IN A       127.0.0.2
 
 1.0.0.127.in-addr.arpa.        86400   IN PTR     localhost.
 103.227.85.209.in-addr.arpa.   30      IN PTR     www.google.com.

@@ -21,6 +21,8 @@ public:
     uint16_t getType() const noexcept { return m_type; }
     uint16_t getClass() const noexcept { return m_class; }
 
+    void setName(Name name) { m_name = std::move(name); }
+
     const char *decode(const char *src, const char *end);
     char *encode(char *dst, const char *end) const noexcept;
 

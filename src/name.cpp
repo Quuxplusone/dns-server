@@ -2,15 +2,43 @@
 #include "exception.h"
 #include "name.h"
 
+#include <algorithm>
 #include <ctype.h>
 #include <string>
 #include <string.h>
 
 using namespace dns;
 
+bool Label::operator==(const Label& rhs) const noexcept
+{
+    if (m_str.size() != rhs.m_str.size()) {
+        return false;
+    }
+    for (int i = 0; i < m_str.size(); ++i) {
+        if (toupper(m_str[i]) != toupper(rhs.m_str[i])) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool Label::operator<(const Label& rhs) const noexcept
+{
+    int n = std::min(m_str.size(), rhs.m_str.size());
+    for (int i = 0; i < n; ++i) {
+        if (toupper(m_str[i]) != toupper(rhs.m_str[i])) {
+            return (toupper(m_str[i]) < toupper(rhs.m_str[i]));
+        }
+    }
+    return n < rhs.m_str.size();
+}
+
 static bool can_appear_unquoted_in_label(char ch)
 {
-    return isalnum(ch) || (ch == '-') || (ch == '_') || (ch == '.') || (ch == '\\');
+    switch (ch) {
+        case '-': case '_': case '*': case '.': case '\\': return true;
+        default: return isalnum(ch);
+    }
 }
 
 Name::Name(const char *repr)
@@ -29,7 +57,7 @@ const char *Name::decode_repr(const char *repr, const char *end)
         saw_double_quotes = true;
         ++repr;
     }
-    std::string current_label;
+    Label current_label;
     const char *p = repr;
     while (true) {
         if (p == end) {
@@ -63,7 +91,7 @@ const char *Name::decode_repr(const char *repr, const char *end)
             ++p;
             break;
         } else if (!saw_double_quotes && !can_appear_unquoted_in_label(*p)) {
-            throw dns::Exception("unusual name " + std::string(repr, p) + " requires double quotes");
+            throw dns::Exception("unusual name requires double quotes");
         } else {
             current_label += (*p);
             if (current_label.size() > 63) {
@@ -72,7 +100,7 @@ const char *Name::decode_repr(const char *repr, const char *end)
         }
         ++p;
     }
-    if (current_label != "") {
+    if (!current_label.empty()) {
         throw dns::UnsupportedException("name " + std::string(repr, p) + " without trailing dot is confusing");
     }
     if (m_labels.empty()) {
@@ -84,10 +112,10 @@ const char *Name::decode_repr(const char *repr, const char *end)
     return p;
 }
 
-static std::string repr_of_label(const std::string& label)
+std::string Label::repr() const
 {
     std::string result;
-    for (char ch : label) {
+    for (char ch : m_str) {
         switch (ch) {
             default: result += ch; break;
             case '\\': result += "\\\\"; break;
@@ -102,7 +130,7 @@ std::string Name::repr() const
 {
     std::string result;
     for (auto&& label : m_labels) {
-        result += repr_of_label(label);
+        result += label.repr();
         if (!label.empty()) result += '.';
     }
     bool require_double_quotes = false;
