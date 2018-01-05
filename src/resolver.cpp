@@ -92,7 +92,7 @@ void Resolver::populate_response(const Question& question, Message& response)
         assert(node != nullptr);
         response.setRCode(RCode::NOERROR);
         for (auto&& rr : node->m_rr_list) {
-            if (question.qtype() == rr.getType() || question.qtype() == RRType::ANY) {
+            if (question.qtype() == rr.rrtype() || question.qtype() == RRType::ANY) {
                 // This RR is relevant!
                 RR modified_rr = rr;
                 if (found_wildcard) {
@@ -107,7 +107,7 @@ void Resolver::populate_response(const Question& question, Message& response)
 void Resolver::add_rr(RR rr)
 {
     DomainTreeNode *node = &m_root;
-    const Name& name = rr.getName();
+    const Name& name = rr.name();
     for (auto&& label : nonstd::drop(1, nonstd::reversed(name.labels()))) {
         node = &node->m_children[label];
     }

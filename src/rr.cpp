@@ -157,8 +157,8 @@ static std::string decode_rdata_repr_just_domain_name(const char *src, const cha
 const char *RR::decode(const char *src, const char *end)
 {
     src = m_name.decode(src, end);
-    src = get16bits(src, end, m_type);
-    src = get16bits(src, end, m_class);
+    src = get16bits(src, end, m_rrtype);
+    src = get16bits(src, end, m_rrclass);
     src = get32bits(src, end, m_ttl);
     src = get_uint16_sized_string(src, end, m_rdata);
     return src;
@@ -167,8 +167,8 @@ const char *RR::decode(const char *src, const char *end)
 char *RR::encode(char *dst, const char *end) const noexcept
 {
     dst = m_name.encode(dst, end);
-    dst = put16bits(dst, end, m_type);
-    dst = put16bits(dst, end, m_class);
+    dst = put16bits(dst, end, m_rrtype);
+    dst = put16bits(dst, end, m_rrclass);
     dst = put32bits(dst, end, m_ttl);
     dst = put_uint16_sized_string(dst, end, m_rdata);
     return dst;
@@ -193,7 +193,7 @@ const char *RR::decode_repr(const char *src, const char *end)
         throw dns::UnsupportedException("Zonefile RR has an out-of-range TTL");
     }
     if (m[2].compare("IN") == 0) {
-        m_class = 1;  // IN
+        m_rrclass = RRClass::IN;
     } else {
         throw dns::UnsupportedException("Zonefile RR has a class other than IN");
     }
@@ -201,7 +201,7 @@ const char *RR::decode_repr(const char *src, const char *end)
     for (auto&& rrt : by_rrtype) {
         if (rrt.str != nullptr && m[3].compare(rrt.str) == 0) {
             assert(rrt.decode_rdata_repr != nullptr);
-            m_type = rrt.type;
+            m_rrtype = rrt.type;
             m_rdata = rrt.decode_rdata_repr(m[4].first, m[4].second);
             success = true;
             break;
@@ -221,12 +221,12 @@ std::string RR::repr() const
     do { result += ' '; } while ((result.size() % 8) != 0);
     result += std::to_string(m_ttl);
     do { result += ' '; } while ((result.size() % 8) != 0);
-    assert(m_class == 1);
+    assert(m_rrclass == RRClass::IN);
     result += "IN";
     result += ' ';
     bool success = false;
     for (auto&& rrt : by_rrtype) {
-        if (rrt.str != nullptr && rrt.type == m_type) {
+        if (rrt.str != nullptr && rrt.type == m_rrtype) {
             assert(rrt.encode_rdata_repr != nullptr);
             result += rrt.str;
             do { result += ' '; } while ((result.size() % 8) != 0);

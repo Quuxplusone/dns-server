@@ -1,6 +1,7 @@
 #pragma once
 
 #include "name.h"
+#include "rrtype.h"
 
 #include <inttypes.h>
 #include <string>
@@ -14,12 +15,11 @@ namespace dns {
 class RR {
 public:
     explicit RR() = default;
-    explicit RR(Name qname, uint16_t qtype, uint16_t qclass, uint32_t ttl, std::string rdata) :
-        m_name(std::move(qname)), m_type(qtype), m_class(qclass), m_ttl(ttl), m_rdata(std::move(rdata)) {}
+    explicit RR(Name name, RRType rrtype, RRClass rrclass, uint32_t ttl, std::string rdata) :
+        m_name(std::move(name)), m_rrtype(rrtype), m_rrclass(rrclass), m_ttl(ttl), m_rdata(std::move(rdata)) {}
 
-    const Name& getName() const noexcept { return m_name; }
-    uint16_t getType() const noexcept { return m_type; }
-    uint16_t getClass() const noexcept { return m_class; }
+    const Name& name() const noexcept { return m_name; }
+    uint16_t rrtype() const noexcept { return m_rrtype; }
 
     void setName(Name name) { m_name = std::move(name); }
 
@@ -31,8 +31,8 @@ public:
 
 private:
     Name m_name;
-    uint16_t m_type;
-    uint16_t m_class;
+    uint16_t m_rrtype;
+    uint16_t m_rrclass;
     uint32_t m_ttl;
     std::string m_rdata;
 };
