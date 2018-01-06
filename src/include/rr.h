@@ -25,6 +25,13 @@ public:
 
     void set_name(Name name) { m_name = std::move(name); }
 
+    /**
+     *  Meaningful only for NS and CNAME records. Decode and return
+     *  the single domain name encoded in this object's RDATA.
+     *  @return The decoded NSDNAME or CNAME domain name.
+     */
+    Name rhs_name() const;
+
     const char *decode(const char *src, const char *end);
     char *encode(char *dst, const char *end) const noexcept;
 

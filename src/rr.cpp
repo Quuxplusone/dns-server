@@ -154,6 +154,17 @@ static std::string decode_rdata_repr_just_domain_name(const char *src, const cha
     return std::string(buffer, buffer_end);
 }
 
+Name RR::rhs_name() const
+{
+    assert(m_rrtype == RRType::NS || m_rrtype == RRType::CNAME);
+    const char *src = m_rdata.data();
+    const char *end = src + m_rdata.size();
+    Name result;
+    src = result.decode(src, end);
+    assert(src == end);
+    return result;
+}
+
 const char *RR::decode(const char *src, const char *end)
 {
     src = m_name.decode(src, end);

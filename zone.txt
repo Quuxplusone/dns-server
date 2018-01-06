@@ -1,4 +1,16 @@
 
+fx.movie.edu.                  86400   IN SOA     bladerunner.fx.movie.edu. hostmaster.fx.movie.edu. 1 3600 1200 86400 30
+fx.movie.edu.                  86400   IN NS      bladerunner.fx.movie.edu.
+fx.movie.edu.                  86400   IN NS      outland.fx.movie.edu.
+fx.movie.edu.                  3600    IN MX      10 starwars.fx.movie.edu.
+fx.movie.edu.                  3600    IN MX      100 wormhole.movie.edu.
+
+bladerunner.fx.movie.edu.      3600    IN A       192.253.254.2
+bladerunner.fx.movie.edu.      3600    IN MX      10 starwars.fx.movie.edu.
+bladerunner.fx.movie.edu.      3600    IN MX      100 wormhole.movie.edu.
+
+br.fx.movie.edu.               3600    IN CNAME   bladerunner.fx.movie.edu.
+
 localhost.                     86400   IN A       127.0.0.1
 www.apple.com.                 30      IN A       17.112.152.32
 www.ericsson.es.               30      IN A       193.180.17.140
