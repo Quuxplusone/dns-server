@@ -2,6 +2,7 @@
 
 #include "bytes.h"
 #include "exception.h"
+#include "ipaddressv4.h"
 #include "rr.h"
 #include "rrtype.h"
 
@@ -30,36 +31,25 @@ static by_rrtype_t by_rrtype[17] = {
     {
         RRType::A, "A",
         [](const std::string& rdata) -> std::string {
-            assert(rdata.size() == 4);
-            std::string result;
-            result += std::to_string(uint8_t(rdata[0]));
-            result += '.';
-            result += std::to_string(uint8_t(rdata[1]));
-            result += '.';
-            result += std::to_string(uint8_t(rdata[2]));
-            result += '.';
-            result += std::to_string(uint8_t(rdata[3]));
-            return result;
+            const char *src = rdata.data();
+            const char *end = src + rdata.size();
+            IPAddressV4 ip;
+            src = ip.decode(src, end);
+            assert(src == end);
+            return ip.repr();
         },
         [](const char *src, const char *end) -> std::string {
-            std::regex rx("(\\d+)[.](\\d+)[.](\\d+)[.](\\d+)$");
-            std::cmatch m;
-            bool success = std::regex_match(src, end, m, rx);
-            if (!success) {
-                throw dns::UnsupportedException("Zonefile RR of type A has a malformed IP address");
-            }
-            int quad1 = atoi(m[1].first);
-            int quad2 = atoi(m[2].first);
-            int quad3 = atoi(m[3].first);
-            int quad4 = atoi(m[4].first);
-            if (quad1 > 255 || quad2 > 255 || quad3 > 255 || quad4 > 255) {
+            IPAddressV4 ip;
+            try {
+                src = ip.decode_repr(src, end);
+                if (src != end) throw dns::Exception("");
+            } catch (const dns::Exception&) {
                 throw dns::UnsupportedException("Zonefile RR of type A has a malformed IP address");
             }
             std::string result(4, '\0');
-            result[0] = quad1;
-            result[1] = quad2;
-            result[2] = quad3;
-            result[3] = quad4;
+            char *dst = &result[0];
+            dst = ip.encode(dst, result.data() + 4);
+            assert(dst == result.data() + 4);
             return result;
         },
     },
@@ -211,7 +201,9 @@ const char *RR::decode_repr(const char *src, const char *end)
     success = false;
     for (auto&& rrt : by_rrtype) {
         if (rrt.str != nullptr && m[3].compare(rrt.str) == 0) {
-            assert(rrt.decode_rdata_repr != nullptr);
+            if (rrt.decode_rdata_repr == nullptr) {
+                throw dns::UnsupportedException("Zonefile RR has known but unsupported type ", rrt.str);
+            }
             m_rrtype = rrt.type;
             m_rdata = rrt.decode_rdata_repr(m[4].first, m[4].second);
             success = true;
@@ -219,7 +211,7 @@ const char *RR::decode_repr(const char *src, const char *end)
         }
     }
     if (!success) {
-        throw dns::UnsupportedException("Zonefile RR has unsupported type ", m[3].str());
+        throw dns::UnsupportedException("Zonefile RR has unknown type ", m[3].str());
     }
     return end;
 }

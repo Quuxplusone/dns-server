@@ -1,5 +1,6 @@
 SRCS = \
     src/bytes.cpp \
+    src/ipaddressv4.cpp \
     src/main.cpp \
     src/message.cpp \
     src/name.cpp \
