@@ -37,7 +37,7 @@ const char *get32bits(const char *src, const char *end, uint32_t& out) noexcept
     return src;
 }
 
-const char *get_uint8_sized_string(const char *src, const char *end, std::string& out) noexcept
+const char *get_uint8_sized_string(const char *src, const char *end, std::string& out)
 {
     uint8_t length;
     src = get8bits(src, end, length);
@@ -48,7 +48,7 @@ const char *get_uint8_sized_string(const char *src, const char *end, std::string
     return src;
 }
 
-const char *get_uint16_sized_string(const char *src, const char *end, std::string& out) noexcept
+const char *get_uint16_sized_string(const char *src, const char *end, std::string& out)
 {
     uint16_t length;
     src = get16bits(src, end, length);
