@@ -4,7 +4,6 @@ This server is just a toy:
 
 * UDP only, no TCP
 * Single-threaded server (for now)
-* No support for POINTER-encoded names
 * No attempt at proper name lookup
 * No CNAME, no DNAME
 * No AXFR

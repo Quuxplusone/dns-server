@@ -17,7 +17,7 @@ public:
     uint16_t qtype() const noexcept { return m_qtype; }
     uint16_t qclass() const noexcept { return m_qclass; }
 
-    const char *decode(const char *src, const char *end);
+    const char *decode(const SymbolTable& syms, const char *src, const char *end);
     char *encode(char *dst, const char *end) const noexcept;
 
 private:

@@ -4,6 +4,7 @@
 #include "question.h"
 #include "rcode.h"
 #include "rr.h"
+#include "symboltable.h"
 
 #include <inttypes.h>
 #include <string>
@@ -35,7 +36,7 @@ public:
      *  @param end A pointer one past the end of the input data.
      *  @return A pointer one past the end of the encoded representation.
      */
-    const char *decode(const char *src, const char *end);
+    const char *decode(const char *packet_start, const char *end);
 
     /**
      *  Function that encodes a DNS message.
@@ -55,6 +56,7 @@ private:
     bool m_ra = false;
     RCode m_rcode = RCode::NOERROR;
 
+    SymbolTable m_symbol_table;
     std::vector<Question> m_question;
     std::vector<RR> m_answer;
     std::vector<RR> m_authority;

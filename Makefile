@@ -7,7 +7,8 @@ SRCS = \
     src/question.cpp \
     src/resolver.cpp \
     src/rr.cpp \
-    src/server.cpp
+    src/server.cpp \
+    src/symboltable.cpp
 
 OBJS = $(patsubst %.cpp,.objs/cxx/%.o,$(SRCS))
 DEPS = $(patsubst %.cpp,.deps/cxx/%.d,$(SRCS))

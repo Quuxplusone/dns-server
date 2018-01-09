@@ -39,8 +39,9 @@ void Resolver::print_records() const
 {
     struct Visitor {
         static void visit(const DomainTreeNode& node) {
+            SymbolTable syms;  // empty, will not be used
             for (auto&& rr : node.m_rr_list) {
-                std::cout << rr.repr() << std::endl;
+                std::cout << rr.repr(syms) << std::endl;
             }
             for (auto&& kv : node.m_children) {
                 visit(kv.second);

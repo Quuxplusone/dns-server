@@ -30,12 +30,12 @@ public:
      *  the single domain name encoded in this object's RDATA.
      *  @return The decoded NSDNAME or CNAME domain name.
      */
-    Name rhs_name() const;
+    Name rhs_name(const SymbolTable& syms) const;
 
-    const char *decode(const char *src, const char *end);
+    const char *decode(const SymbolTable& syms, const char *src, const char *end);
     char *encode(char *dst, const char *end) const noexcept;
 
-    std::string repr() const;
+    std::string repr(const SymbolTable& syms) const;
     const char *decode_repr(const char *src, const char *end);
 
 private:

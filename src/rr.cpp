@@ -5,6 +5,7 @@
 #include "ipaddressv4.h"
 #include "rr.h"
 #include "rrtype.h"
+#include "symboltable.h"
 
 #include <assert.h>
 #include <regex>
@@ -14,7 +15,7 @@
 
 using namespace dns;
 
-static std::string encode_rdata_repr_just_domain_name(const std::string& rdata);
+static std::string encode_rdata_repr_just_domain_name(const SymbolTable& syms, const std::string& rdata);
 
 template<RRType rrtype>
 static std::string decode_rdata_repr_just_domain_name(const char *src, const char *end);
@@ -22,7 +23,7 @@ static std::string decode_rdata_repr_just_domain_name(const char *src, const cha
 struct by_rrtype_t {
     RRType type;
     const char *str;
-    std::string (*encode_rdata_repr)(const std::string& rdata);
+    std::string (*encode_rdata_repr)(const SymbolTable& syms, const std::string& rdata);
     std::string (*decode_rdata_repr)(const char *src, const char *end);
 };
 
@@ -30,7 +31,7 @@ static by_rrtype_t by_rrtype[17] = {
     {},
     {
         RRType::A, "A",
-        [](const std::string& rdata) -> std::string {
+        [](const SymbolTable&, const std::string& rdata) -> std::string {
             const char *src = rdata.data();
             const char *end = src + rdata.size();
             IPAddressV4 ip;
@@ -84,12 +85,12 @@ static by_rrtype_t by_rrtype[17] = {
     {},
     {
         RRType::MX, "MX",
-        [](const std::string& rdata) -> std::string {
+        [](const SymbolTable& syms, const std::string& rdata) -> std::string {
             Name exchange_name;
             const char *end = rdata.data() + rdata.size();
             uint16_t preference;
             const char *src = get16bits(rdata.data(), end, preference);
-            src = exchange_name.decode(src, end);
+            src = exchange_name.decode(syms, src, end);
             assert(src == end);
             std::string result = std::to_string(preference);
             do { result += ' '; } while ((result.size() % 8) != 0);
@@ -122,11 +123,12 @@ static by_rrtype_t by_rrtype[17] = {
     },
 };
 
-static std::string encode_rdata_repr_just_domain_name(const std::string& rdata)
+static std::string encode_rdata_repr_just_domain_name(const SymbolTable& syms, const std::string& rdata)
 {
     Name canonical_name;
-    const char *end = rdata.data() + rdata.size();
-    const char *src = canonical_name.decode(rdata.data(), end);
+    const char *src = rdata.data();
+    const char *end = src + rdata.size();
+    src = canonical_name.decode(syms, src, end);
     assert(src == end);
     return canonical_name.repr();
 }
@@ -144,20 +146,20 @@ static std::string decode_rdata_repr_just_domain_name(const char *src, const cha
     return std::string(buffer, buffer_end);
 }
 
-Name RR::rhs_name() const
+Name RR::rhs_name(const SymbolTable& syms) const
 {
     assert(m_rrtype == RRType::NS || m_rrtype == RRType::CNAME);
     const char *src = m_rdata.data();
     const char *end = src + m_rdata.size();
     Name result;
-    src = result.decode(src, end);
+    src = result.decode(syms, src, end);
     assert(src == end);
     return result;
 }
 
-const char *RR::decode(const char *src, const char *end)
+const char *RR::decode(const SymbolTable& syms, const char *src, const char *end)
 {
-    src = m_name.decode(src, end);
+    src = m_name.decode(syms, src, end);
     src = get16bits(src, end, m_rrtype);
     src = get16bits(src, end, m_rrclass);
     src = get32bits(src, end, m_ttl);
@@ -216,7 +218,7 @@ const char *RR::decode_repr(const char *src, const char *end)
     return end;
 }
 
-std::string RR::repr() const
+std::string RR::repr(const SymbolTable& syms) const
 {
     std::string result;
     result += m_name.repr();
@@ -233,7 +235,7 @@ std::string RR::repr() const
             assert(rrt.encode_rdata_repr != nullptr);
             result += rrt.str;
             do { result += ' '; } while ((result.size() % 8) != 0);
-            result += rrt.encode_rdata_repr(m_rdata);
+            result += rrt.encode_rdata_repr(syms, m_rdata);
             success = true;
             break;
         }

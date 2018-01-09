@@ -1,9 +1,13 @@
 #pragma once
 
+#include "symboltable.h"
+
 #include <string>
 #include <vector>
 
 namespace dns {
+
+class SymbolTable;
 
 /**
  *  Class that represents a DNS label (a possibly empty sequence of characters).
@@ -48,7 +52,7 @@ public:
     const std::vector<Label>& labels() const noexcept { return m_labels; }
 
     char *encode(char *dst, const char *end) const noexcept;
-    const char *decode(const char *src, const char *end);
+    const char *decode(const SymbolTable& syms, const char *src, const char *end);
 
     const char *decode_repr(const char *src, const char *end);
     std::string repr() const;

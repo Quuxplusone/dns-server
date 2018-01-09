@@ -16,8 +16,10 @@ void Message::setInResponseTo(const Message& q) noexcept
     m_ra = false;
 }
 
-const char *Message::decode(const char *src, const char *end)
+const char *Message::decode(const char *packet_start, const char *end)
 {
+    const char *src = packet_start;
+
     uint16_t fields;
     uint16_t qdcount, ancount, nscount, arcount;
 
@@ -38,24 +40,29 @@ const char *Message::decode(const char *src, const char *end)
     m_ra = ((fields >> 7) & 0x1);
     m_rcode = static_cast<RCode>((fields >> 0) & 0x4);
 
+    // Now, before parsing any other names, build a "symbol table"
+    // consisting of all the names that could possibly be encoded
+    // in this packet's bytes.
+    m_symbol_table.build(packet_start, end);
+
     for (uint16_t i=0; i < qdcount; ++i) {
         m_question.emplace_back();
-        src = m_question.back().decode(src, end);
+        src = m_question.back().decode(m_symbol_table, src, end);
         if (src == nullptr) return nullptr;
     }
     for (uint16_t i=0; i < ancount; ++i) {
         m_answer.emplace_back();
-        src = m_answer.back().decode(src, end);
+        src = m_answer.back().decode(m_symbol_table, src, end);
         if (src == nullptr) return nullptr;
     }
     for (uint16_t i=0; i < nscount; ++i) {
         m_authority.emplace_back();
-        src = m_authority.back().decode(src, end);
+        src = m_authority.back().decode(m_symbol_table, src, end);
         if (src == nullptr) return nullptr;
     }
     for (uint16_t i=0; i < arcount; ++i) {
         m_additional.emplace_back();
-        src = m_additional.back().decode(src, end);
+        src = m_additional.back().decode(m_symbol_table, src, end);
         if (src == nullptr) return nullptr;
     }
     return src;

@@ -1,8 +1,10 @@
 
 #include "exception.h"
 #include "name.h"
+#include "symboltable.h"
 
 #include <algorithm>
+#include <assert.h>
 #include <ctype.h>
 #include <string>
 #include <string.h>
@@ -161,7 +163,7 @@ char *Name::encode(char *dst, const char *end) const noexcept
     return dst;
 }
 
-const char *Name::decode(const char *src, const char *end)
+const char *Name::decode(const SymbolTable& syms, const char *src, const char *end)
 {
     if (src == nullptr || src == end) return nullptr;
     m_labels.clear();
@@ -176,9 +178,23 @@ const char *Name::decode(const char *src, const char *end)
             m_labels.emplace_back(std::move(label));
             src += length;
         } else if ((length & 0xC0) == 0xC0) {
-            throw dns::UnsupportedException("name field uses POINTER encoding scheme");
+            auto it = syms.find(length);
+            if (it == syms.end()) {
+                return nullptr;
+            }
+            const Name& target = it->second;
+            m_labels.insert(m_labels.end(), target.labels().begin(), target.labels().end());
+            break;
+        } else if ((length & 0xC0) == 0x40) {
+            // Unrecognized encoding scheme (possibly the one described in
+            // now-obsolete RFC 2673 "Binary Labels in the Domain Name System")
+            return nullptr;
+        } else if ((length & 0xC0) == 0x80) {
+            // Unrecognized encoding scheme (possibly the one described in
+            // RFC-draft "A New Scheme for the Compression of Domain Names")
+            return nullptr;
         } else {
-            throw dns::Exception("name field uses an unrecognized encoding scheme");
+            assert(false);
         }
     } while (length != 0);
     return src;

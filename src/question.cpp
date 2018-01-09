@@ -4,9 +4,9 @@
 
 using namespace dns;
 
-const char *Question::decode(const char *src, const char *end)
+const char *Question::decode(const SymbolTable& syms, const char *src, const char *end)
 {
-    src = m_qname.decode(src, end);
+    src = m_qname.decode(syms, src, end);
     src = get16bits(src, end, m_qtype);
     src = get16bits(src, end, m_qclass);
     return src;
