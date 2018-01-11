@@ -1,6 +1,7 @@
-A toy authoritative DNS server, forked from https://github.com/tomasorti/dns-server
+A toy authoritative DNS server and DNS stub-resolver,
+forked from https://github.com/tomasorti/dns-server
 
-This server is just a toy:
+This authoritative server is just a toy:
 
 * UDP only, no TCP
 * Single-threaded server (for now)
@@ -17,10 +18,19 @@ Its (single) "zone file" uses a restrictive subset of standard DNS syntax:
 * No checking for common error modes
 * Abort with an exception if you get the syntax wrong
 
+The DNS stub resolver (a.k.a. client, a.k.a. `dig` clone) is also a toy.
+
+* UDP only, no TCP
+* Connect only to 127.0.0.1
+* No relative names
+
 Test with:
 
-    ./dnsserver 9000 zone.txt &
+    ./dns-auth-server 9000 zone.txt &
+
     dig @127.0.0.1 -p 9000 www.google.com.
+
+    ./dns-dig 9000 www.google.com. ANY
 
 References:
 

@@ -1,6 +1,9 @@
 
 #include "bytes.h"
 #include "question.h"
+#include "rrtype.h"
+
+#include <assert.h>
 
 using namespace dns;
 
@@ -18,4 +21,18 @@ char *Question::encode(char *dst, const char *end) const noexcept
     dst = put16bits(dst, end, m_qtype);
     dst = put16bits(dst, end, m_qclass);
     return dst;
+}
+
+std::string Question::repr() const
+{
+    std::string result;
+    result += m_qname.repr();
+    do { result += ' '; } while (result.size() < 32);
+    do { result += ' '; } while ((result.size() % 8) != 0);
+    result += "        ";
+    assert(m_qclass == RRClass::IN);
+    result += "IN";
+    result += ' ';
+    result += RRType(m_qtype).repr();
+    return result;
 }

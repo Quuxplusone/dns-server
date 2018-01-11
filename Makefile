@@ -1,22 +1,36 @@
-SRCS = \
+DNS_AUTH_SERVER_SRCS = \
     src/bytes.cpp \
     src/ipaddressv4.cpp \
-    src/main.cpp \
+    src/main-auth-server.cpp \
     src/message.cpp \
     src/name.cpp \
     src/question.cpp \
     src/resolver.cpp \
     src/rr.cpp \
+    src/rrtype.cpp \
     src/server.cpp \
     src/symboltable.cpp
 
-OBJS = $(patsubst %.cpp,.objs/cxx/%.o,$(SRCS))
-DEPS = $(patsubst %.cpp,.deps/cxx/%.d,$(SRCS))
+DNS_DIG_SRCS = \
+    src/bytes.cpp \
+    src/digger.cpp \
+    src/ipaddressv4.cpp \
+    src/main-dig.cpp \
+    src/message.cpp \
+    src/name.cpp \
+    src/question.cpp \
+    src/rr.cpp \
+    src/rrtype.cpp \
+    src/symboltable.cpp
+
+DNS_AUTH_SERVER_OBJS = $(patsubst %.cpp,.objs/cxx/%.o,$(DNS_AUTH_SERVER_SRCS))
+DNS_DIG_OBJS = $(patsubst %.cpp,.objs/cxx/%.o,$(DNS_DIG_SRCS))
+DEPS = $(patsubst %.cpp,.deps/cxx/%.d,$(DNS_AUTH_SERVER_SRCS) $(DNS_DIG_SRCS))
 
 CPPFLAGS += -I src/include
 CXXFLAGS += -std=c++11 -O2 -W -Wall -Wextra -pedantic -Werror -Wno-sign-compare
 
-all: dnsserver
+all: dns-auth-server dns-dig
 
 ifneq ($(MAKECMDGOALS), clean)
     -include $(DEPS)
@@ -30,8 +44,11 @@ endif
 	@mkdir -p $(shell dirname $@)
 	$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -o $@ $<
 
-dnsserver: $(OBJS)
+dns-auth-server: $(DNS_AUTH_SERVER_OBJS)
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
+
+dns-dig: $(DNS_DIG_OBJS)
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
 clean:
-	rm -rf .deps .objs dnsserver
+	rm -rf .deps .objs dns-auth-server dns-dig

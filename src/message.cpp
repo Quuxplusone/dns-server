@@ -99,3 +99,58 @@ char *Message::encode(char *dst, const char *end) const noexcept
     }
     return dst;
 }
+
+std::string Message::repr() const
+{
+    std::string result;
+
+    result += ";; ->>HEADER<<- opcode: ";
+    result += Opcode(m_opcode).repr();
+    result += ", status: ";
+    result += RCode(m_rcode).repr();
+    result += ", id: ";
+    result += std::to_string(m_id);
+    result += "\n";
+
+    result += ";; flags: ";
+    result += "TODO";
+    result += "; QUERY: " + std::to_string(m_question.size());
+    result += ", ANSWER: " + std::to_string(m_answer.size());
+    result += ", AUTHORITY: " + std::to_string(m_authority.size());
+    result += ", ADDITIONAL: " + std::to_string(m_additional.size());
+    result += "\n";
+
+    if (m_rd && !m_ra) {
+        result += ";; WARNING: recursion requested but not available\n";
+    }
+
+    if (!m_question.empty()) {
+        result += "\n;; QUESTION SECTION:\n";
+        for (auto&& q : m_question) {
+            result += ";" + q.repr() + "\n";
+        }
+    }
+
+    if (!m_answer.empty()) {
+        result += "\n;; ANSWER SECTION:\n";
+        for (auto&& rr : m_answer) {
+            result += rr.repr(m_symbol_table) + "\n";
+        }
+    }
+
+    if (!m_authority.empty()) {
+        result += "\n;; AUTHORITY SECTION:\n";
+        for (auto&& rr : m_authority) {
+            result += rr.repr(m_symbol_table) + "\n";
+        }
+    }
+
+    if (!m_additional.empty()) {
+        result += "\n;; AUTHORITY SECTION:\n";
+        for (auto&& rr : m_additional) {
+            result += rr.repr(m_symbol_table) + "\n";
+        }
+    }
+
+    return result;
+}

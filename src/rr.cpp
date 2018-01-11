@@ -1,5 +1,4 @@
 
-
 #include "bytes.h"
 #include "exception.h"
 #include "ipaddressv4.h"
@@ -17,7 +16,7 @@ using namespace dns;
 
 static std::string encode_rdata_repr_just_domain_name(const SymbolTable& syms, const std::string& rdata);
 
-template<RRType rrtype>
+template<int rrtype>
 static std::string decode_rdata_repr_just_domain_name(const char *src, const char *end);
 
 struct by_rrtype_t {
@@ -27,8 +26,7 @@ struct by_rrtype_t {
     std::string (*decode_rdata_repr)(const char *src, const char *end);
 };
 
-static by_rrtype_t by_rrtype[17] = {
-    {},
+static by_rrtype_t by_rrtype[] = {
     {
         RRType::A, "A",
         [](const SymbolTable&, const std::string& rdata) -> std::string {
@@ -59,8 +57,6 @@ static by_rrtype_t by_rrtype[17] = {
         encode_rdata_repr_just_domain_name,
         decode_rdata_repr_just_domain_name<RRType::NS>,
     },
-    {},
-    {},
     {
         RRType::CNAME, "CNAME",
         encode_rdata_repr_just_domain_name,
@@ -71,18 +67,11 @@ static by_rrtype_t by_rrtype[17] = {
         nullptr,
         nullptr,
     },
-    {},
-    {},
-    {},
-    {},
-    {},
     {
         RRType::PTR, "PTR",
         encode_rdata_repr_just_domain_name,
         decode_rdata_repr_just_domain_name<RRType::PTR>,
     },
-    {},
-    {},
     {
         RRType::MX, "MX",
         [](const SymbolTable& syms, const std::string& rdata) -> std::string {
@@ -133,13 +122,12 @@ static std::string encode_rdata_repr_just_domain_name(const SymbolTable& syms, c
     return canonical_name.repr();
 }
 
-template<RRType rrtype>
+template<int rrtype>
 static std::string decode_rdata_repr_just_domain_name(const char *src, const char *end)
 {
-    assert(by_rrtype[rrtype].str != nullptr);
     Name canonical_name;
     src = canonical_name.decode_repr(src, end);
-    if (src != end) throw dns::UnsupportedException("Zonefile RR of type ", by_rrtype[rrtype].str, " has the wrong format");
+    if (src != end) throw dns::UnsupportedException("Zonefile RR of type ", RRType(rrtype).repr(), " has the wrong format");
     char buffer[255*64];
     char *buffer_end = canonical_name.encode(buffer, buffer + sizeof buffer);
     assert(buffer_end != nullptr);
@@ -206,7 +194,7 @@ const char *RR::decode_repr(const char *src, const char *end)
             if (rrt.decode_rdata_repr == nullptr) {
                 throw dns::UnsupportedException("Zonefile RR has known but unsupported type ", rrt.str);
             }
-            m_rrtype = rrt.type;
+            m_rrtype = int(rrt.type);
             m_rdata = rrt.decode_rdata_repr(m[4].first, m[4].second);
             success = true;
             break;
@@ -231,7 +219,7 @@ std::string RR::repr(const SymbolTable& syms) const
     result += ' ';
     bool success = false;
     for (auto&& rrt : by_rrtype) {
-        if (rrt.str != nullptr && rrt.type == m_rrtype) {
+        if (rrt.str != nullptr && int(rrt.type) == m_rrtype) {
             assert(rrt.encode_rdata_repr != nullptr);
             result += rrt.str;
             do { result += ' '; } while ((result.size() % 8) != 0);

@@ -16,6 +16,7 @@ public:
         REFUSED = 5,
     };
 
+    explicit constexpr RCode() = default;
     explicit constexpr RCode(int x) : m_value(x) {}
     constexpr RCode(enum RCode::detail x) : m_value(int(x)) {}
     explicit constexpr operator int() const { return m_value; }
@@ -35,7 +36,7 @@ public:
     }
 
 private:
-    uint8_t m_value;
+    uint8_t m_value = 0;
 };
 
 } // namespace dns

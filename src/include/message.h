@@ -46,6 +46,8 @@ public:
      */
     char *encode(char *dst, const char *end) const noexcept;
 
+    std::string repr() const;
+
 private:
     uint16_t m_id = 0;
     bool m_qr = false;
