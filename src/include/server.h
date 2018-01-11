@@ -31,8 +31,6 @@ public:
     void run() noexcept;
 
 private:
-    static const int BUFFER_SIZE = 1024;
-
     int m_sockfd;
     Resolver& m_resolver;
 };
