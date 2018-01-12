@@ -21,7 +21,8 @@ DNS_DIG_SRCS = \
     src/question.cpp \
     src/rr.cpp \
     src/rrtype.cpp \
-    src/symboltable.cpp
+    src/symboltable.cpp \
+    src/upstream.cpp
 
 DNS_AUTH_SERVER_OBJS = $(patsubst %.cpp,.objs/cxx/%.o,$(DNS_AUTH_SERVER_SRCS))
 DNS_DIG_OBJS = $(patsubst %.cpp,.objs/cxx/%.o,$(DNS_DIG_SRCS))

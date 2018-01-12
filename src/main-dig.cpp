@@ -40,6 +40,8 @@ int main(int argc, char **argv)
     }
 
     try {
+        dns::Upstream upstream("127.0.0.1", port);
+
         AsyncScheduler scheduler;
         dns::Digger digger(scheduler);
 
@@ -47,7 +49,7 @@ int main(int argc, char **argv)
         dns::RRType qtype(qtype_str);
         dns::Question q(qname, qtype, dns::RRClass::IN);
 
-        dns::Message response = digger.dig(q).get();
+        dns::Message response = digger.dig(q, upstream).get();
 
         std::cout << response.repr() << std::endl;
         std::cout << ";; Query time: <FAKE>msec\n" << std::endl;

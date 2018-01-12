@@ -2,6 +2,7 @@
 
 #include "message.h"
 #include "question.h"
+#include "upstream.h"
 
 #include <functional>
 #include <future>
@@ -24,7 +25,7 @@ public:
         };
     }
 
-    std::future<Message> dig(Question question) const;
+    std::future<Message> dig(Question question, Upstream upstream) const;
 
 private:
     std::function<void(Task)> m_schedule_task;

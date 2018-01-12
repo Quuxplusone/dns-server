@@ -113,7 +113,11 @@ std::string Message::repr() const
     result += "\n";
 
     result += ";; flags: ";
-    result += "TODO";
+    if (m_qr) result += " qr";
+    if (m_aa) result += " aa";
+    if (m_tc) result += " tc";
+    if (m_rd) result += " rd";
+    if (m_ra) result += " ra";
     result += "; QUERY: " + std::to_string(m_question.size());
     result += ", ANSWER: " + std::to_string(m_answer.size());
     result += ", AUTHORITY: " + std::to_string(m_authority.size());

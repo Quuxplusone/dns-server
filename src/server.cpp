@@ -17,7 +17,7 @@ void Server::bind_to(int port)
 {
     m_sockfd = socket(AF_INET, SOCK_DGRAM, 0);
 
-    struct sockaddr_in address;
+    struct sockaddr_in address {};
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
     address.sin_port = htons(port);

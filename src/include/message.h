@@ -22,9 +22,13 @@ public:
     bool is_response() const noexcept { return m_qr; }
     const std::vector<Question>& questions() const noexcept { return m_question; }
 
+    void setID(uint16_t id) noexcept { m_id = id; }
+    void setOpcode(Opcode opcode) noexcept { m_opcode = opcode; }
     void setInResponseTo(const Message& q) noexcept;
     void setRCode(RCode rcode) noexcept { m_rcode = rcode; }
+    void setQR(bool qr) noexcept { m_qr = qr; }
     void setAA(bool aa) noexcept { m_aa = aa; }
+    void setRD(bool rd) noexcept { m_rd = rd; }
     void add_question(Question q) { m_question.emplace_back(std::move(q)); }
     void add_answer(RR rr) { m_answer.emplace_back(std::move(rr)); }
     void add_authority(RR rr) { m_authority.emplace_back(std::move(rr)); }
