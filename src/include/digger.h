@@ -4,9 +4,7 @@
 #include "question.h"
 #include "upstream.h"
 
-#include <functional>
 #include <future>
-#include <utility>
 
 namespace dns {
 
@@ -15,20 +13,10 @@ namespace dns {
  *  waits for the response.
  */
 class Digger {
-    using Task = std::function<void()>;
-
 public:
-    template<class TaskScheduler>
-    explicit Digger(TaskScheduler& scheduler) {
-        m_schedule_task = [&](Task task) {
-            scheduler(std::move(task));
-        };
-    }
+    explicit Digger() = default;
 
     std::future<Message> dig(Question question, Upstream upstream) const;
-
-private:
-    std::function<void(Task)> m_schedule_task;
 };
 
 } // namespace dns

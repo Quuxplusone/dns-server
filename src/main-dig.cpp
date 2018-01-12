@@ -9,13 +9,6 @@
 #include <string>
 #include <thread>
 
-struct AsyncScheduler {
-    template<class Task>
-    auto operator()(Task&& task) -> decltype(std::async(std::forward<Task>(task))) {
-        return std::async(std::forward<Task>(task));
-    }
-};
-
 void exit_with_message(const char *msg)
 {
     std::cerr << msg << std::endl;
@@ -41,9 +34,7 @@ int main(int argc, char **argv)
 
     try {
         dns::Upstream upstream("127.0.0.1", port);
-
-        AsyncScheduler scheduler;
-        dns::Digger digger(scheduler);
+        dns::Digger digger;
 
         dns::Name qname(qname_str.c_str());
         dns::RRType qtype(qtype_str);
