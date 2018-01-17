@@ -18,13 +18,18 @@ class Message {
 public:
     explicit Message() = default;
 
+    Message beginResponse() const noexcept;
+
     bool is_query() const noexcept { return !m_qr; }
     bool is_response() const noexcept { return m_qr; }
+    Opcode opcode() const noexcept { return m_opcode; }
     const std::vector<Question>& questions() const noexcept { return m_question; }
+    const std::vector<RR>& answers() const noexcept { return m_answer; }
+    const std::vector<RR>& authority() const noexcept { return m_authority; }
+    const std::vector<RR>& additional() const noexcept { return m_additional; }
 
     void setID(uint16_t id) noexcept { m_id = id; }
     void setOpcode(Opcode opcode) noexcept { m_opcode = opcode; }
-    void setInResponseTo(const Message& q) noexcept;
     void setRCode(RCode rcode) noexcept { m_rcode = rcode; }
     void setQR(bool qr) noexcept { m_qr = qr; }
     void setAA(bool aa) noexcept { m_aa = aa; }

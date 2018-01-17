@@ -54,6 +54,7 @@ void Server::run() noexcept
             }
             if (parsed == nullptr) {
                 std::cout << "Failed to parse packet of length " << nbytes << std::endl;
+                // and blackhole the malformed packet
                 return false;
             }
             if (parsed != buffer + nbytes) {
@@ -68,6 +69,7 @@ void Server::run() noexcept
             const char *written = response.encode(buffer, buffer + sizeof buffer);
             if (written == nullptr) {
                 std::cout << "Buffer wasn't long enough to encode response packet" << std::endl;
+                // and blackhole the query: oops!
             } else {
                 sendto(
                     m_sockfd,
@@ -80,14 +82,36 @@ void Server::run() noexcept
         if (read_in()) {
             if (query.is_response()) {
                 std::cout << "Packet was an unsolicited response, not a query" << std::endl;
-            } else if (query.questions().size() == 0) {
-                std::cout << "Query contained no questions in question section" << std::endl;
-            } else if (query.questions().size() >= 2) {
-                std::cout << "Query contained multiple questions in question section" << std::endl;
+                // and blackhole the malformed packet
+            } else if (query.opcode() != Opcode::QUERY) {
+                std::cout << "Query had opcode " << query.opcode().repr() << ", not QUERY" << std::endl;
+                Message response = query.beginResponse();
+                response.setRCode(RCode::NOTIMP);
+                write_out(response);
+            } else if (query.questions().size() != 1) {
+                std::cout << "Query contained " << (query.questions().empty() ? "no" : "multiple") << " questions in question section" << std::endl;
+                Message response = Message::beginResponseTo(query);
+                response.setAA(true).setRA(false).setRCode(RCode::FORMERR);
+                write_out(response);
+            } else if (query.answers().size() != 0) {
+                std::cout << "Query contained RRs in its answer section" << std::endl;
+                Message response = Message::beginResponseTo(query);
+                response.setAA(true).setRA(false).setRCode(RCode::FORMERR);
+                write_out(response);
+            } else if (query.authority().size() != 0) {
+                std::cout << "Query contained RRs in its authority section" << std::endl;
+                Message response = Message::beginResponseTo(query);
+                response.setAA(true).setRA(false).setRCode(RCode::FORMERR);
+                write_out(response);
+            } else if (query.additional().size() != 0) {
+                // RFC 6891, section 7: if EDNS is unsupported, respond with FORMERR
+                std::cout << "Query contained RRs in its additional section (perhaps due to EDNS?)" << std::endl;
+                Message response = Message::beginResponseTo(query);
+                response.setAA(true).setRA(false).setRCode(RCode::FORMERR);
+                write_out(response);
             } else {
                 const Question& q = query.questions().front();
-                Message response;
-                response.setInResponseTo(query);
+                Message response = query.beginResponse();
                 m_resolver.populate_response(q, response);
                 write_out(response);
             }

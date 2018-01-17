@@ -118,29 +118,32 @@ void Resolver::populate_response(const Question& question, Message& response) co
 
     assert(node != nullptr);
     response.setAA(in_authoritative_zone);
-    if (!in_authoritative_zone && last_zone_cut_node != nullptr) {
+    if (in_authoritative_zone) {
+        if (found_nothing_in_tree) {
+            response.setRCode(RCode::NXDOMAIN);
+            add_SOA_to_authority_section(last_top_of_zone_node, response);
+        } else {
+            // We found either the qname, or a wildcard matching the qname.
+            response.setRCode(RCode::NOERROR);
+            for (auto&& rr : node->m_rr_list) {
+                if (question.qtype() == rr.rrtype() || question.qtype() == RRType::ANY) {
+                    // This RR is relevant!
+                    RR modified_rr = rr;
+                    if (found_wildcard) {
+                        modified_rr.set_name(question.qname());
+                    }
+                    response.add_answer(std::move(modified_rr));
+                }
+            }
+        }
+    } else if (last_zone_cut_node != nullptr) {
         // RFC 1034, section 4.3.2, step 3b: respond with a referral
         // RFC 4592, section 4.2: it does not matter if the zone name in question is a wildcard
         response.setRCode(RCode::NOERROR);
         populate_with_referral(last_zone_cut_node, response);
-    } else if (found_nothing_in_tree) {
-        if (in_authoritative_zone) {
-            add_SOA_to_authority_section(last_top_of_zone_node, response);
-        }
-        response.setRCode(RCode::NXDOMAIN);
     } else {
-        // We found either the qname, or a wildcard matching the qname.
-        response.setRCode(RCode::NOERROR);
-        for (auto&& rr : node->m_rr_list) {
-            if (question.qtype() == rr.rrtype() || question.qtype() == RRType::ANY) {
-                // This RR is relevant!
-                RR modified_rr = rr;
-                if (found_wildcard) {
-                    modified_rr.set_name(question.qname());
-                }
-                response.add_answer(std::move(modified_rr));
-            }
-        }
+        // If we have no relevant authority at all, we should just refuse to answer.
+        response.setRCode(RCode::REFUSED);
     }
 }
 

@@ -6,14 +6,16 @@
 
 using namespace dns;
 
-void Message::setInResponseTo(const Message& q) noexcept
+Message Message::beginResponse() const noexcept
 {
-    m_id = q.m_id;
-    m_qr = true;
-    m_opcode = q.m_opcode;
-    m_aa = true;
-    m_rd = q.m_rd;
-    m_ra = false;
+    Message result;
+    result.m_id = m_id;
+    result.m_qr = true;
+    result.m_opcode = m_opcode;
+    result.m_aa = true;
+    result.m_rd = m_rd;
+    result.m_ra = false;
+    return result;
 }
 
 const char *Message::decode(const char *packet_start, const char *end)
@@ -38,7 +40,7 @@ const char *Message::decode(const char *packet_start, const char *end)
     m_tc = ((fields >> 9) & 0x1);
     m_rd = ((fields >> 8) & 0x1);
     m_ra = ((fields >> 7) & 0x1);
-    m_rcode = static_cast<RCode>((fields >> 0) & 0x4);
+    m_rcode = static_cast<RCode>((fields >> 0) & 0xF);
 
     // Now, before parsing any other names, build a "symbol table"
     // consisting of all the names that could possibly be encoded
@@ -71,7 +73,7 @@ const char *Message::decode(const char *packet_start, const char *end)
 char *Message::encode(char *dst, const char *end) const noexcept
 {
     int fields = (int(m_qr) << 15);
-    fields |= (int(m_opcode) << 14);
+    fields |= (int(m_opcode) << 11);
     fields |= (int(m_aa) << 10);
     fields |= (int(m_tc) << 9);
     fields |= (int(m_rd) << 8);

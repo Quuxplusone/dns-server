@@ -37,3 +37,4 @@ References:
 * [RFC 1034 "Domain Names - Concepts and Facilities"](https://tools.ietf.org/html/rfc1034)
 * [RFC 1035 "Domain Names - Implementation and Specification"](https://tools.ietf.org/html/rfc1035)
 * [RFC 4592 "The Role of Wildcards in the Domain Name System"](https://tools.ietf.org/html/rfc4592)
+* [RFC 6891 "Extension Mechanisms for DNS (EDNS(0))"](https://tools.ietf.org/html/rfc6891)
