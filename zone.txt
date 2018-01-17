@@ -1,3 +1,4 @@
+fx.movie.edu.                  86400   IN SOA     bladerunner.fx.movie.edu. hostmaster.fx.movie.edu. 1 10800 3600 608400 3600
 
 fx.movie.edu.                  86400   IN NS      bladerunner.fx.movie.edu.
 fx.movie.edu.                  86400   IN NS      outland.fx.movie.edu.

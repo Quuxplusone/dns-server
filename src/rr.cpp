@@ -31,7 +31,7 @@ static by_rrtype_t by_rrtype[] = {
         RRType::A, "A",
         [](const SymbolTable&, const std::string& rdata) -> std::string {
             const char *src = rdata.data();
-            const char *end = src + rdata.size();
+            const char *end = rdata.data() + rdata.size();
             IPAddressV4 ip;
             src = ip.decode(src, end);
             assert(src == end);
@@ -64,8 +64,70 @@ static by_rrtype_t by_rrtype[] = {
     },
     {
         RRType::SOA, "SOA",
-        nullptr,
-        nullptr,
+        [](const SymbolTable& syms, const std::string& rdata) -> std::string {
+            const char *src = rdata.data();
+            const char *end = rdata.data() + rdata.size();
+            Name primary_master_name;
+            Name responsible_person_name;
+            uint32_t serial_number;
+            uint32_t refresh;
+            uint32_t retry;
+            uint32_t expire;
+            uint32_t negative_caching_ttl;
+            src = primary_master_name.decode(syms, src, end);
+            src = responsible_person_name.decode(syms, src, end);
+            src = get32bits(src, end, serial_number);
+            src = get32bits(src, end, refresh);
+            src = get32bits(src, end, retry);
+            src = get32bits(src, end, expire);
+            src = get32bits(src, end, negative_caching_ttl);
+            assert(src == end);
+            return (
+                primary_master_name.repr() + " " +
+                responsible_person_name.repr() + " " +
+                std::to_string(serial_number) + " " +
+                std::to_string(refresh) + " " +
+                std::to_string(retry) + " " +
+                std::to_string(expire) + " " +
+                std::to_string(negative_caching_ttl)
+            );
+        },
+        [](const char *src, const char *end) -> std::string {
+            Name primary_master_name;
+            Name responsible_person_name;
+
+            while (src != nullptr && src != end && isspace(*src)) ++src;
+            src = primary_master_name.decode_repr(src, end);
+            while (src != nullptr && src != end && isspace(*src)) ++src;
+            src = responsible_person_name.decode_repr(src, end);
+            if (src == nullptr || src == end) throw dns::UnsupportedException("Zonefile RR of type SOA has the wrong format");
+
+            std::regex rx("\\s+(\\d+)\\s+(\\d+)\\s+(\\d+)\\s+(\\d+)\\s+(\\d+)$");
+            std::cmatch m;
+            bool success = std::regex_match(src, end, m, rx);
+            if (!success) {
+                throw dns::UnsupportedException("Zonefile RR of type SOA has the wrong format");
+            }
+
+            int serial_number = atoi(m[1].first);
+            int refresh = atoi(m[2].first);
+            int retry = atoi(m[3].first);
+            int expire = atoi(m[4].first);
+            int negative_caching_ttl = atoi(m[5].first);
+
+            char buffer[255*64*2 + 20];
+            char *dst = buffer;
+            char *dst_end = buffer + sizeof buffer;
+            dst = primary_master_name.encode(dst, dst_end);
+            dst = responsible_person_name.encode(dst, dst_end);
+            dst = put32bits(dst, dst_end, serial_number);
+            dst = put32bits(dst, dst_end, refresh);
+            dst = put32bits(dst, dst_end, retry);
+            dst = put32bits(dst, dst_end, expire);
+            dst = put32bits(dst, dst_end, negative_caching_ttl);
+            assert(dst != nullptr);
+            return std::string(buffer, dst);
+        },
     },
     {
         RRType::PTR, "PTR",
@@ -75,16 +137,14 @@ static by_rrtype_t by_rrtype[] = {
     {
         RRType::MX, "MX",
         [](const SymbolTable& syms, const std::string& rdata) -> std::string {
-            Name exchange_name;
+            const char *src = rdata.data();
             const char *end = rdata.data() + rdata.size();
             uint16_t preference;
-            const char *src = get16bits(rdata.data(), end, preference);
+            Name exchange_name;
+            src = get16bits(src, end, preference);
             src = exchange_name.decode(syms, src, end);
             assert(src == end);
-            std::string result = std::to_string(preference);
-            do { result += ' '; } while ((result.size() % 8) != 0);
-            result += exchange_name.repr();
-            return result;
+            return std::to_string(preference) + " " + exchange_name.repr();
         },
         [](const char *src, const char *end) -> std::string {
             std::regex rx("(\\d+)\\s+(.*)$");
