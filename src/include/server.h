@@ -1,6 +1,6 @@
 #pragma once
 
-#include "resolver.h"
+#include "authoritative-resolver.h"
 
 namespace dns {
 
@@ -15,7 +15,7 @@ public:
      *  Creates a socket Server.
      *  @param resolver The object @ref Resolver from the application.
      */
-    explicit Server(Resolver& resolver) : m_resolver(resolver) {}
+    explicit Server(AuthoritativeResolver& resolver) : m_resolver(resolver) {}
 
     /**
      *  Initializes the server creating a UDP datagram socket and binding it to
@@ -32,7 +32,7 @@ public:
 
 private:
     int m_sockfd;
-    Resolver& m_resolver;
+    AuthoritativeResolver& m_resolver;
 };
 
 } // namespace dns

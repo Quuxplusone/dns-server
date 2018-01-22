@@ -1,8 +1,9 @@
 
-#include "digger.h"
 #include "exception.h"
 #include "message.h"
+#include "nonstd.h"
 #include "question.h"
+#include "stub-resolver.h"
 
 #include <arpa/inet.h>
 #include <future>
@@ -16,18 +17,17 @@
 
 using namespace dns;
 
-std::future<Message> Digger::dig(Question question, Upstream upstream) const
+StubResolver::StubResolver(Upstream upstream)
 {
-    Message query;
-    query.setID(rand());
-    query.setOpcode(Opcode::QUERY);
-    query.setQR(false);
-    query.setRD(false);
-    query.add_question(std::move(question));
+    m_upstreams.push_back(std::move(upstream));
+}
+
+std::future<Message> StubResolver::async_resolve(const Message& query, nonstd::milliseconds timeout) const
+{
+    const Upstream& upstream = this->m_upstreams.at(0);
 
     Upstream ephemeral_port("127.0.0.1", 0);
-
-    int sockfd = ephemeral_port.bind_udp_socket();
+    int sockfd = ephemeral_port.bind_udp_socket(timeout);
 
     char buffer[512];
     const char *end = query.encode(buffer, buffer + sizeof buffer);
@@ -55,13 +55,13 @@ std::future<Message> Digger::dig(Question question, Upstream upstream) const
         Message response;
 
         while (true) {
-            struct sockaddr_in clientAddress;
-            socklen_t addrLen = sizeof clientAddress;
+            struct sockaddr_in serverAddress;
+            socklen_t addrLen = sizeof serverAddress;
             int nbytes = recvfrom(
                 sockfd,
                 buffer, sizeof buffer,
                 0,
-                reinterpret_cast<struct sockaddr *>(&clientAddress), &addrLen
+                reinterpret_cast<struct sockaddr *>(&serverAddress), &addrLen
             );
             std::cout << "Received " << nbytes << " bytes!" << std::endl;
             if (nbytes <= 0) {

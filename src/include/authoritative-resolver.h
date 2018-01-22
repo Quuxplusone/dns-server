@@ -19,7 +19,7 @@ public:
     bool is_zone_cut() const noexcept { return m_has_NS_record && !m_has_SOA_record; }
 
 private:
-    friend class Resolver;
+    friend class AuthoritativeResolver;
 
     bool m_has_SOA_record = false;
     bool m_has_NS_record = false;
@@ -32,13 +32,13 @@ private:
  *  names contained on it. It processes the @ref Query and set the appropiate
  *  values in the @ref Response.
  */
-class Resolver {
+class AuthoritativeResolver {
 public:
     /**
      *  Open the zonefile and read it to initialize the database.
      *  @param filename Name of the file containing the zone data.
      */
-    explicit Resolver(const std::string& filename);
+    explicit AuthoritativeResolver(const std::string& filename);
 
     /**
      *  Process the query and produce a response.

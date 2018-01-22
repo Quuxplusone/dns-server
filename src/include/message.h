@@ -18,7 +18,8 @@ class Message {
 public:
     explicit Message() = default;
 
-    Message beginResponse() const noexcept;
+    static Message beginQuery(Question question) noexcept;
+    static Message beginResponseTo(const Message& query) noexcept;
 
     bool is_query() const noexcept { return !m_qr; }
     bool is_response() const noexcept { return m_qr; }
@@ -28,16 +29,17 @@ public:
     const std::vector<RR>& authority() const noexcept { return m_authority; }
     const std::vector<RR>& additional() const noexcept { return m_additional; }
 
-    void setID(uint16_t id) noexcept { m_id = id; }
-    void setOpcode(Opcode opcode) noexcept { m_opcode = opcode; }
-    void setRCode(RCode rcode) noexcept { m_rcode = rcode; }
-    void setQR(bool qr) noexcept { m_qr = qr; }
-    void setAA(bool aa) noexcept { m_aa = aa; }
-    void setRD(bool rd) noexcept { m_rd = rd; }
-    void add_question(Question q) { m_question.emplace_back(std::move(q)); }
-    void add_answer(RR rr) { m_answer.emplace_back(std::move(rr)); }
-    void add_authority(RR rr) { m_authority.emplace_back(std::move(rr)); }
-    void add_additional(RR rr) { m_additional.emplace_back(std::move(rr)); }
+    Message& setID(uint16_t id) noexcept { m_id = id; return *this; }
+    Message& setOpcode(Opcode opcode) noexcept { m_opcode = opcode; return *this; }
+    Message& setRCode(RCode rcode) noexcept { m_rcode = rcode; return *this; }
+    Message& setQR(bool qr) noexcept { m_qr = qr; return *this; }
+    Message& setAA(bool aa) noexcept { m_aa = aa; return *this; }
+    Message& setRD(bool rd) noexcept { m_rd = rd; return *this; }
+    Message& setRA(bool ra) noexcept { m_ra = ra; return *this; }
+    Message& add_question(Question q) { m_question.emplace_back(std::move(q)); return *this; }
+    Message& add_answer(RR rr) { m_answer.emplace_back(std::move(rr)); return *this; }
+    Message& add_authority(RR rr) { m_authority.emplace_back(std::move(rr)); return *this; }
+    Message& add_additional(RR rr) { m_additional.emplace_back(std::move(rr)); return *this; }
 
     /**
      *  Function that decodes a DNS message.

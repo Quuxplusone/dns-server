@@ -4,18 +4,30 @@
 #include "opcode.h"
 #include "rcode.h"
 
+#include <stdlib.h>
+#include <string>
+#include <utility>
+
 using namespace dns;
 
-Message Message::beginResponse() const noexcept
+Message Message::beginQuery(Question question) noexcept
 {
-    Message result;
-    result.m_id = m_id;
-    result.m_qr = true;
-    result.m_opcode = m_opcode;
-    result.m_aa = true;
-    result.m_rd = m_rd;
-    result.m_ra = false;
-    return result;
+    Message query;
+    query.setID(rand());
+    query.setOpcode(Opcode::QUERY);
+    query.setQR(false);
+    query.add_question(std::move(question));
+    return query;
+}
+
+Message Message::beginResponseTo(const Message& query) noexcept
+{
+    Message response;
+    response.m_id = query.m_id;
+    response.m_qr = true;
+    response.m_opcode = query.m_opcode;
+    response.m_rd = query.m_rd;
+    return response;
 }
 
 const char *Message::decode(const char *packet_start, const char *end)

@@ -1,5 +1,5 @@
 
-#include "resolver.h"
+#include "authoritative-resolver.h"
 #include "server.h"
 
 #include <iostream>
@@ -29,7 +29,7 @@ int main(int argc, char **argv)
     }
 
     try {
-        dns::Resolver resolver(zonefile);
+        dns::AuthoritativeResolver resolver(zonefile);
         resolver.print_records();
         dns::Server server(resolver);
         server.bind_to(port);

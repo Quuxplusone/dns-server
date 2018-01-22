@@ -1,9 +1,13 @@
 #pragma once
 
+#include <chrono>
 #include <iterator>
 #include <utility>
 
 namespace nonstd {
+
+using std::chrono::milliseconds;
+using std::chrono::seconds;
 
 template<class Container>
 class drop_container {

@@ -1,8 +1,8 @@
 
+#include "authoritative-resolver.h"
 #include "exception.h"
 #include "message.h"
 #include "question.h"
-#include "resolver.h"
 #include "server.h"
 
 #include <iostream>
@@ -85,8 +85,8 @@ void Server::run() noexcept
                 // and blackhole the malformed packet
             } else if (query.opcode() != Opcode::QUERY) {
                 std::cout << "Query had opcode " << query.opcode().repr() << ", not QUERY" << std::endl;
-                Message response = query.beginResponse();
-                response.setRCode(RCode::NOTIMP);
+                Message response = Message::beginResponseTo(query);
+                response.setAA(true).setRA(false).setRCode(RCode::NOTIMP);
                 write_out(response);
             } else if (query.questions().size() != 1) {
                 std::cout << "Query contained " << (query.questions().empty() ? "no" : "multiple") << " questions in question section" << std::endl;
@@ -111,7 +111,8 @@ void Server::run() noexcept
                 write_out(response);
             } else {
                 const Question& q = query.questions().front();
-                Message response = query.beginResponse();
+                Message response = Message::beginResponseTo(query);
+                response.setAA(true).setRA(false);
                 m_resolver.populate_response(q, response);
                 write_out(response);
             }

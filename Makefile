@@ -1,11 +1,11 @@
 DNS_AUTH_SERVER_SRCS = \
+    src/authoritative-resolver.cpp \
     src/bytes.cpp \
     src/ipaddressv4.cpp \
     src/main-auth-server.cpp \
     src/message.cpp \
     src/name.cpp \
     src/question.cpp \
-    src/resolver.cpp \
     src/rr.cpp \
     src/rrtype.cpp \
     src/server.cpp \
@@ -13,7 +13,6 @@ DNS_AUTH_SERVER_SRCS = \
 
 DNS_DIG_SRCS = \
     src/bytes.cpp \
-    src/digger.cpp \
     src/ipaddressv4.cpp \
     src/main-dig.cpp \
     src/message.cpp \
@@ -21,6 +20,7 @@ DNS_DIG_SRCS = \
     src/question.cpp \
     src/rr.cpp \
     src/rrtype.cpp \
+    src/stub-resolver.cpp \
     src/symboltable.cpp \
     src/upstream.cpp
 

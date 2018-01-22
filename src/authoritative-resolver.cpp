@@ -1,9 +1,9 @@
 
+#include "authoritative-resolver.h"
 #include "exception.h"
 #include "message.h"
 #include "nonstd.h"
 #include "question.h"
-#include "resolver.h"
 #include "rr.h"
 #include "rrtype.h"
 
@@ -14,7 +14,7 @@
 
 using namespace dns;
 
-Resolver::Resolver(const std::string& filename)
+AuthoritativeResolver::AuthoritativeResolver(const std::string& filename)
 {
     std::ifstream file(filename.data());
     if (!file) {
@@ -35,7 +35,7 @@ Resolver::Resolver(const std::string& filename)
     }
 }
 
-void Resolver::print_records() const
+void AuthoritativeResolver::print_records() const
 {
     struct Visitor {
         static void visit(const DomainTreeNode& node) {
@@ -52,7 +52,7 @@ void Resolver::print_records() const
     v.visit(m_root);
 }
 
-void Resolver::add_SOA_to_authority_section(const DomainTreeNode *node, Message& response) const
+void AuthoritativeResolver::add_SOA_to_authority_section(const DomainTreeNode *node, Message& response) const
 {
     assert(node->is_top_of_zone());
     for (auto&& rr : node->m_rr_list) {
@@ -63,7 +63,7 @@ void Resolver::add_SOA_to_authority_section(const DomainTreeNode *node, Message&
     }
 }
 
-void Resolver::populate_with_referral(const DomainTreeNode *zone_cut_node, Message& response) const
+void AuthoritativeResolver::populate_with_referral(const DomainTreeNode *zone_cut_node, Message& response) const
 {
     for (auto&& rr : zone_cut_node->m_rr_list) {
         if (rr.is_NS_record()) {
@@ -73,7 +73,7 @@ void Resolver::populate_with_referral(const DomainTreeNode *zone_cut_node, Messa
     }
 }
 
-void Resolver::populate_response(const Question& question, Message& response) const
+void AuthoritativeResolver::populate_response(const Question& question, Message& response) const
 {
     response.add_question(Question(
         question.qname(),
@@ -147,7 +147,7 @@ void Resolver::populate_response(const Question& question, Message& response) co
     }
 }
 
-void Resolver::add_rr(RR rr)
+void AuthoritativeResolver::add_rr(RR rr)
 {
     bool is_SOA = rr.is_SOA_record();
     bool is_NS = rr.is_NS_record();
