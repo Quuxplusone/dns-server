@@ -1,7 +1,9 @@
 #pragma once
 
+#include "bus.h"
 #include "message.h"
 #include "nonstd.h"
+#include "nonstd-future.h"
 #include "question.h"
 #include "upstream.h"
 
@@ -16,11 +18,12 @@ namespace dns {
  */
 class StubResolver {
 public:
-    explicit StubResolver(Upstream upstream);
+    explicit StubResolver(bus::Bus& bus, Upstream upstream);
 
-    std::future<Message> async_resolve(const Message& query, nonstd::milliseconds timeout) const;
+    nonstd::future<Message> async_resolve(const Message& query, nonstd::milliseconds timeout) const;
 
 private:
+    bus::Bus& m_bus;
     std::vector<Upstream> m_upstreams;
 };
 

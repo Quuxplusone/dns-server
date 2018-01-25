@@ -12,6 +12,7 @@ DNS_AUTH_SERVER_SRCS = \
     src/symboltable.cpp
 
 DNS_DIG_SRCS = \
+    src/bus.cpp \
     src/bytes.cpp \
     src/ipaddressv4.cpp \
     src/main-dig.cpp \
@@ -29,7 +30,7 @@ DNS_DIG_OBJS = $(patsubst %.cpp,.objs/cxx/%.o,$(DNS_DIG_SRCS))
 DEPS = $(patsubst %.cpp,.deps/cxx/%.d,$(DNS_AUTH_SERVER_SRCS) $(DNS_DIG_SRCS))
 
 CPPFLAGS += -I src/include
-CXXFLAGS += -std=c++11 -O2 -W -Wall -Wextra -pedantic -Werror -Wno-sign-compare
+CXXFLAGS += -std=c++14 -O2 -W -Wall -Wextra -pedantic -Werror -Wno-sign-compare
 
 all: dns-auth-server dns-dig
 

@@ -1,10 +1,12 @@
 
+#include "bus.h"
 #include "exception.h"
 #include "message.h"
 #include "nonstd.h"
 #include "question.h"
 #include "stub-resolver.h"
 
+#include <assert.h>
 #include <arpa/inet.h>
 #include <future>
 #include <iostream>
@@ -17,18 +19,54 @@
 
 using namespace dns;
 
-StubResolver::StubResolver(Upstream upstream)
+StubResolver::StubResolver(bus::Bus& bus, Upstream upstream) : m_bus(bus)
 {
     m_upstreams.push_back(std::move(upstream));
 }
 
-std::future<Message> StubResolver::async_resolve(const Message& query, nonstd::milliseconds timeout) const
+Message recv_message_from_socket(int sockfd)
 {
-    const Upstream& upstream = this->m_upstreams.at(0);
+    char buffer[1024];
+    Message response;
 
-    Upstream ephemeral_port("127.0.0.1", 0);
-    int sockfd = ephemeral_port.bind_udp_socket(timeout);
+    while (true) {
+        struct sockaddr_in serverAddress;
+        socklen_t addrLen = sizeof serverAddress;
+        int nbytes = recvfrom(
+            sockfd,
+            buffer, sizeof buffer,
+            0,
+            reinterpret_cast<struct sockaddr *>(&serverAddress), &addrLen
+        );
+        std::cout << "Received " << nbytes << " bytes!" << std::endl;
+        if (nbytes <= 0) {
+            continue;
+        }
+        const char *parsed = nullptr;
+        try {
+            parsed = response.decode(buffer, buffer + nbytes);
+        } catch (const dns::Exception& e) {
+            std::cout << "During packet decode: " << e.what() << std::endl;
+            std::cout << "During packet decode: " << e.what() << std::endl;
+            continue;
+        }
+        if (parsed == nullptr) {
+            std::cout << "Failed to parse packet of length " << nbytes << std::endl;
+            continue;
+        }
+        if (parsed != buffer + nbytes) {
+            std::cout << "Packet of length " << nbytes
+                << " parsed as message of length " << (parsed - buffer)
+                << " with some trailing bytes" << std::endl;
+        }
+        break;
+    }
 
+    return response;
+}
+
+void send_message_to_socket(const Message& query, int sockfd, const Upstream& upstream)
+{
     char buffer[512];
     const char *end = query.encode(buffer, buffer + sizeof buffer);
     if (end == nullptr) {
@@ -47,46 +85,25 @@ std::future<Message> StubResolver::async_resolve(const Message& query, nonstd::m
         std::cout << "Sent " << sent << " bytes!" << std::endl;
         src += sent;
     }
+}
 
-    // Now listen until we hear a response. (TODO: this is awkward and bad)
+nonstd::future<Message> StubResolver::async_resolve(const Message& query, nonstd::milliseconds timeout) const
+{
+    const Upstream& upstream = this->m_upstreams.at(0);
 
-    return std::async([sockfd]() -> Message {
-        char buffer[1024];
-        Message response;
+    Upstream ephemeral_port("127.0.0.1", 0);
+    int sockfd = ephemeral_port.bind_udp_socket(timeout);
+    assert(sockfd > 0);
 
-        while (true) {
-            struct sockaddr_in serverAddress;
-            socklen_t addrLen = sizeof serverAddress;
-            int nbytes = recvfrom(
-                sockfd,
-                buffer, sizeof buffer,
-                0,
-                reinterpret_cast<struct sockaddr *>(&serverAddress), &addrLen
-            );
-            std::cout << "Received " << nbytes << " bytes!" << std::endl;
-            if (nbytes <= 0) {
-                continue;
-            }
-            const char *parsed = nullptr;
-            try {
-                parsed = response.decode(buffer, buffer + nbytes);
-            } catch (const dns::Exception& e) {
-                std::cout << "During packet decode: " << e.what() << std::endl;
-                continue;
-            }
-            if (parsed == nullptr) {
-                std::cout << "Failed to parse packet of length " << nbytes << std::endl;
-                continue;
-            }
-            if (parsed != buffer + nbytes) {
-                std::cout << "Packet of length " << nbytes
-                    << " parsed as message of length " << (parsed - buffer)
-                    << " with some trailing bytes" << std::endl;
-            }
-            break;
-        }
+    // Send the query to the upstream server.
+    return m_bus.when_ready_to_send(sockfd).on_value_f([this, query, sockfd, upstream]() {
+        send_message_to_socket(query, sockfd, upstream);
 
-        close(sockfd);
-        return response;
+        // Now listen until we hear a response.
+        return m_bus.when_ready_to_recv(sockfd).on_value([sockfd]() -> Message {
+            return recv_message_from_socket(sockfd);
+        }).finally([sockfd]() {
+            close(sockfd);
+        });
     });
 }

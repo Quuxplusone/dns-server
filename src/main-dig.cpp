@@ -1,4 +1,5 @@
 
+#include "bus.h"
 #include "message.h"
 #include "nonstd.h"
 #include "question.h"
@@ -34,7 +35,9 @@ int main(int argc, char **argv)
     }
 
     try {
+        bus::Bus bus;
         dns::StubResolver stubresolver(
+            bus,
             dns::Upstream("127.0.0.1", port)
         );
 

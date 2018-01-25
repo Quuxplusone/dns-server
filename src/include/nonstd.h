@@ -1,13 +1,34 @@
 #pragma once
 
 #include <chrono>
+#include <exception>
 #include <iterator>
+#include <sys/time.h>
 #include <utility>
 
 namespace nonstd {
 
-using std::chrono::milliseconds;
-using std::chrono::seconds;
+using milliseconds = std::chrono::milliseconds;
+using seconds = std::chrono::seconds;
+using time_point = std::chrono::time_point<std::chrono::steady_clock>;
+
+inline struct timeval as_timeval(nonstd::milliseconds ms)
+{
+    struct timeval tv{};
+    tv.tv_sec = ms.count() / 1000;
+    tv.tv_usec = (ms.count() % 1000) * 1000;
+    return tv;
+}
+
+template<class Ex>
+std::exception_ptr make_exception_ptr(Ex&& ex)
+{
+    try {
+        throw std::forward<Ex>(ex);
+    } catch (...) {
+        return std::current_exception();
+    }
+}
 
 template<class Container>
 class drop_container {
