@@ -25,3 +25,9 @@ www.microsoft.com.             30      IN A       65.55.21.250
 140.17.180.193.in-addr.arpa.   30      IN PTR     www.ericsson.es.
 250.21.55.65.in-addr.arpa.     30      IN PTR     www.microsoft.com.
 32.152.112.17.in-addr.arpa.    30      IN PTR     www.apple.com.
+
+example.                    86400      IN TYPE6   bladerunner.fx.movie.edu. hostmaster.fx.movie.edu. 1 10800 3600 608400 3600
+example.                    86400      IN NS      bladerunner.fx.movie.edu.
+example.                    86400      IN TYPE16  \# 12 0568656c6c6f05776f726c64
+e.example.                     60      IN A       \# 4 0A000001
+e.example.                     60  CLASS1 TYPE1   10.0.0.2

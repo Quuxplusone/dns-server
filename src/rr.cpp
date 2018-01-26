@@ -165,11 +165,6 @@ static by_rrtype_t by_rrtype[] = {
             return std::string(buffer, buffer_end);
         },
     },
-    {
-        RRType::TXT, "TXT",
-        nullptr,
-        nullptr,
-    },
 };
 
 static std::string encode_rdata_repr_just_domain_name(const SymbolTable& syms, const std::string& rdata)
@@ -192,6 +187,58 @@ static std::string decode_rdata_repr_just_domain_name(const char *src, const cha
     char *buffer_end = canonical_name.encode(buffer, buffer + sizeof buffer);
     assert(buffer_end != nullptr);
     return std::string(buffer, buffer_end);
+}
+
+static std::string encode_unknown_rdata_repr(const std::string& rdata)
+{
+    // RFC 3597 "Handling of Unknown DNS Resource Record (RR) Types", section 5
+    std::string result = "\\# ";
+    result += std::to_string(rdata.size());
+    result += ' ';
+    for (uint8_t ch : rdata) {
+        char buffer[10];
+        snprintf(buffer, sizeof buffer, "%02x", unsigned(ch));
+        result += buffer;
+    }
+    return result;
+}
+
+static std::string decode_unknown_rdata_repr(const char *src, const char *end)
+{
+    // RFC 3597 "Handling of Unknown DNS Resource Record (RR) Types", section 5
+    auto to_hex = [](char c) -> int {
+        if ('0' <= c && c <= '9') return (c - '0');
+        if ('a' <= c && c <= 'f') return (c - 'a') + 10;
+        if ('A' <= c && c <= 'F') return (c - 'A') + 10;
+        return -1;
+    };
+    std::cmatch m;
+    if (!std::regex_match(src, end, m, std::regex("\\\\#\\s+(\\d+)((\\s+[0-9a-fA-F ]*)?)$"))) {
+        throw dns::UnsupportedException("Zonefile RR in RFC 3597 format has the wrong format");
+    }
+    int rdata_length = atoi(m[1].first);
+    assert(m[2].second == end);
+    std::string result;
+    result.reserve(rdata_length);
+    bool highorder = true;
+    uint8_t in_progress = 0x00;
+    for (src = m[2].first; src != end; ++src) {
+        int digit = to_hex(*src);
+        if (digit == -1) continue;
+        if (highorder) {
+            in_progress = (digit << 4);
+        } else {
+            result.push_back(uint8_t(in_progress | digit));
+        }
+        highorder = !highorder;
+    }
+    if (!highorder) {
+        throw dns::UnsupportedException("Zonefile RR in RFC 3597 format has an odd number of hex digits");
+    }
+    if (result.size() != rdata_length) {
+        throw dns::UnsupportedException("Zonefile RR in RFC 3597 format has the wrong length");
+    }
+    return result;
 }
 
 Name RR::rhs_name(const SymbolTable& syms) const
@@ -233,8 +280,7 @@ const char *RR::decode_repr(const char *src, const char *end)
     if (src == nullptr) return nullptr;
     std::regex rx("\\s*(\\d+)\\s+(\\S+)\\s+(\\S+)\\s+(.*?)\\s*$");
     std::cmatch m;
-    bool success = std::regex_match(src, end, m, rx);
-    if (!success) {
+    if (!std::regex_match(src, end, m, rx)) {
         throw dns::UnsupportedException("Zonefile RR has the wrong format");
     }
     int ttl = atoi(m[1].first);
@@ -243,25 +289,34 @@ const char *RR::decode_repr(const char *src, const char *end)
     } else {
         throw dns::UnsupportedException("Zonefile RR has an out-of-range TTL");
     }
-    if (m[2].compare("IN") == 0) {
-        m_rrclass = RRClass::IN;
-    } else {
-        throw dns::UnsupportedException("Zonefile RR has a class other than IN");
-    }
-    success = false;
-    for (auto&& rrt : by_rrtype) {
-        if (rrt.str != nullptr && m[3].compare(rrt.str) == 0) {
-            if (rrt.decode_rdata_repr == nullptr) {
-                throw dns::UnsupportedException("Zonefile RR has known but unsupported type ", rrt.str);
-            }
-            m_rrtype = int(rrt.type);
-            m_rdata = rrt.decode_rdata_repr(m[4].first, m[4].second);
-            success = true;
-            break;
+    try {
+        m_rrclass = int(RRClass(m.str(2)));
+        if (m_rrclass != RRClass::IN) {
+            throw dns::UnsupportedException("Zonefile RR has a class other than IN");
         }
+    } catch (const dns::UnsupportedException&) {
+        throw dns::UnsupportedException("Zonefile RR has unknown class ", m.str(2));
     }
-    if (!success) {
-        throw dns::UnsupportedException("Zonefile RR has unknown type ", m[3].str());
+    try {
+        m_rrtype = int(RRType(m.str(3)));
+        if (m_rrtype == RRType::ANY) {
+            throw dns::UnsupportedException("Zonefile RR has type ANY");
+        }
+    } catch (const dns::UnsupportedException&) {
+        throw dns::UnsupportedException("Zonefile RR has unknown type ", m.str(3));
+    }
+    // See whether the rdata matches the "RR of unknown type" text format.
+    if (m[4].length() >= 2 && m[4].first[0] == '\\' && m[4].first[1] == '#') {
+        m_rdata = decode_unknown_rdata_repr(m[4].first, m[4].second);
+    } else {
+        for (auto&& rrt : by_rrtype) {
+            // See whether we know a custom RDATA-parsing routine for this specific rrtype.
+            if (RRType(m_rrtype) == rrt.type) {
+                assert(rrt.decode_rdata_repr != nullptr);
+                m_rdata = rrt.decode_rdata_repr(m[4].first, m[4].second);
+                break;
+            }
+        }
     }
     return end;
 }
@@ -277,17 +332,19 @@ std::string RR::repr(const SymbolTable& syms) const
     assert(m_rrclass == RRClass::IN);
     result += "IN";
     result += ' ';
+    result += RRType(m_rrtype).repr();
+    do { result += ' '; } while ((result.size() % 8) != 0);
     bool success = false;
     for (auto&& rrt : by_rrtype) {
-        if (rrt.str != nullptr && int(rrt.type) == m_rrtype) {
+        if (int(rrt.type) == m_rrtype) {
             assert(rrt.encode_rdata_repr != nullptr);
-            result += rrt.str;
-            do { result += ' '; } while ((result.size() % 8) != 0);
             result += rrt.encode_rdata_repr(syms, m_rdata);
             success = true;
             break;
         }
     }
-    assert(success);
+    if (!success) {
+        result += encode_unknown_rdata_repr(m_rdata);
+    }
     return result;
 }
