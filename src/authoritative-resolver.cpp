@@ -115,8 +115,16 @@ void AuthoritativeResolver::populate_response(const Question& question, Message&
         }
         break;
     }
-
     assert(node != nullptr);
+    if (node->is_top_of_zone()) {
+        in_authoritative_zone = true;
+        last_top_of_zone_node = node;
+    } else if (node->is_zone_cut()) {
+        // RC 1034, section 4.2.1: the zone cut's NS records themselves are not authoritative
+        in_authoritative_zone = false;
+        last_zone_cut_node = node;
+    }
+
     response.setAA(in_authoritative_zone);
     if (in_authoritative_zone) {
         if (found_nothing_in_tree) {
