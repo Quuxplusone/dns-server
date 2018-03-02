@@ -8,7 +8,6 @@
 
 #include <assert.h>
 #include <arpa/inet.h>
-#include <future>
 #include <iostream>
 #include <errno.h>
 #include <netinet/in.h>
@@ -24,12 +23,12 @@ StubResolver::StubResolver(bus::Bus& bus, Upstream upstream) : m_bus(bus)
     m_upstreams.push_back(std::move(upstream));
 }
 
-Message recv_message_from_socket(int sockfd)
+static Message recv_message_from_socket(int sockfd)
 {
     char buffer[1024];
     Message response;
 
-    while (true) {
+    if (true) {
         struct sockaddr_in serverAddress;
         socklen_t addrLen = sizeof serverAddress;
         int nbytes = recvfrom(
@@ -38,34 +37,30 @@ Message recv_message_from_socket(int sockfd)
             0,
             reinterpret_cast<struct sockaddr *>(&serverAddress), &addrLen
         );
-        std::cout << "Received " << nbytes << " bytes!" << std::endl;
         if (nbytes <= 0) {
-            continue;
+            throw dns::Exception("recvfrom returned ", nbytes);
         }
+        std::cout << "Received " << nbytes << " bytes!" << std::endl;
         const char *parsed = nullptr;
         try {
             parsed = response.decode(buffer, buffer + nbytes);
         } catch (const dns::Exception& e) {
-            std::cout << "During packet decode: " << e.what() << std::endl;
-            std::cout << "During packet decode: " << e.what() << std::endl;
-            continue;
+            throw dns::Exception("During packet decode: ", e.what());
         }
         if (parsed == nullptr) {
-            std::cout << "Failed to parse packet of length " << nbytes << std::endl;
-            continue;
+            throw dns::Exception("Failed to parse packet of length ", nbytes);
         }
         if (parsed != buffer + nbytes) {
             std::cout << "Packet of length " << nbytes
                 << " parsed as message of length " << (parsed - buffer)
                 << " with some trailing bytes" << std::endl;
         }
-        break;
     }
 
     return response;
 }
 
-void send_message_to_socket(const Message& query, int sockfd, const Upstream& upstream)
+static void send_message_to_socket(const Message& query, int sockfd, const Upstream& upstream)
 {
     char buffer[512];
     const char *end = query.encode(buffer, buffer + sizeof buffer);
@@ -87,6 +82,38 @@ void send_message_to_socket(const Message& query, int sockfd, const Upstream& up
     }
 }
 
+static bool looks_like_attempted_response_to(const Message& response, const Message& query)
+{
+    if (!response.is_response()) {
+        std::cout << "Wasn't a response at all" << std::endl;
+    } else if (response.id() != query.id()) {
+        std::cout << "Was a response with an invalid query-id" << std::endl;
+    } else if (response.questions().size() != 1) {
+        std::cout << "Was a response with more than one question, or no questions" << std::endl;
+    } else if (response.questions().front() != query.questions().front()) {
+        std::cout << "Was a response with the wrong question" << std::endl;
+    } else {
+        return true;
+    }
+    return false;
+}
+
+nonstd::future<Message> StubResolver::loop_until_recv_response_from_socket(int sockfd, Message query) const
+{
+    return m_bus.when_ready_to_recv(sockfd)
+    .on_value_f([this, query = std::move(query), sockfd]() mutable {
+        try {
+            Message response = recv_message_from_socket(sockfd);
+            if (looks_like_attempted_response_to(response, query)) {
+                return nonstd::make_ready_future(std::move(response));
+            }
+        } catch (dns::Exception& e) {
+            std::cout << e.what() << std::endl;
+        }
+        return loop_until_recv_response_from_socket(sockfd, std::move(query));
+    });
+}
+
 nonstd::future<Message> StubResolver::async_resolve(const Message& query, nonstd::milliseconds timeout) const
 {
     const Upstream& upstream = this->m_upstreams.at(0);
@@ -100,10 +127,8 @@ nonstd::future<Message> StubResolver::async_resolve(const Message& query, nonstd
         send_message_to_socket(query, sockfd, upstream);
 
         // Now listen until we hear a response.
-        return m_bus.when_ready_to_recv(sockfd).on_value([sockfd]() -> Message {
-            return recv_message_from_socket(sockfd);
-        }).finally([sockfd]() {
-            close(sockfd);
-        });
+        return this->loop_until_recv_response_from_socket(sockfd, query);
+    }).finally([sockfd]() {
+        close(sockfd);
     });
 }

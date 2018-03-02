@@ -1,5 +1,7 @@
 #pragma once
 
+#include "nonstd.h"
+
 #include <exception>
 #include <string>
 
@@ -14,7 +16,10 @@ public:
     template<class... Args>
     explicit Exception(Args&&... args) {
         int a[] = {
-            [&]() { m_text += std::forward<Args>(args); return 0; }() ...
+            [&]() {
+                m_text += nonstd::to_string(std::forward<Args>(args));
+                return 0;
+            }() ...
         };
         (void)a;
     }

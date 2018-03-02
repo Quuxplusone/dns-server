@@ -3,10 +3,14 @@
 #include <chrono>
 #include <exception>
 #include <iterator>
+#include <string>
 #include <sys/time.h>
 #include <utility>
 
 namespace nonstd {
+
+template<int I> struct priority_tag : priority_tag<I-1> {};
+template<> struct priority_tag<0> {};
 
 using milliseconds = std::chrono::milliseconds;
 using seconds = std::chrono::seconds;
@@ -65,6 +69,40 @@ template<class Container>
 reversed_container<Container&&> reversed(Container&& container) noexcept
 {
     return reversed_container<Container&&>(std::forward<Container>(container));
+}
+
+
+template<class T>
+auto to_string_impl(T&&, priority_tag<3>) -> std::enable_if_t<
+    std::is_same<T, signed char>::value ||
+    std::is_same<T, unsigned char>::value,
+    std::string>
+{
+    static_assert(sizeof(T) == 0, "nonstd::to_string cannot be used on signed/unsigned character types");
+}
+
+template<class T>
+auto to_string_impl(T&& t, priority_tag<2>) -> decltype(std::string{} + std::forward<T>(t))
+{
+    return std::string{} + std::forward<T>(t);
+}
+
+template<class T>
+auto to_string_impl(T&& t, priority_tag<1>) -> decltype(std::to_string(std::forward<T>(t)))
+{
+    return std::to_string(std::forward<T>(t));
+}
+
+template<class T>
+std::string to_string_impl(T&&, priority_tag<0>)
+{
+    static_assert(sizeof(T) == 0, "nonstd::to_string cannot be used on this type");
+}
+
+template<class T>
+std::string to_string(T&& t)
+{
+    return to_string_impl(std::forward<T>(t), priority_tag<3>());
 }
 
 } // namespace nonstd

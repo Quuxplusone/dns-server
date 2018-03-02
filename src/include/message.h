@@ -21,6 +21,7 @@ public:
     static Message beginQuery(Question question) noexcept;
     static Message beginResponseTo(const Message& query) noexcept;
 
+    uint16_t id() const noexcept { return m_id; }
     bool is_query() const noexcept { return !m_qr; }
     bool is_response() const noexcept { return m_qr; }
     Opcode opcode() const noexcept { return m_opcode; }

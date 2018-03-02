@@ -7,7 +7,6 @@
 #include "question.h"
 #include "upstream.h"
 
-#include <future>
 #include <vector>
 
 namespace dns {
@@ -23,6 +22,8 @@ public:
     nonstd::future<Message> async_resolve(const Message& query, nonstd::milliseconds timeout) const;
 
 private:
+    nonstd::future<Message> loop_until_recv_response_from_socket(int sockfd, Message query) const;
+
     bus::Bus& m_bus;
     std::vector<Upstream> m_upstreams;
 };

@@ -24,6 +24,9 @@ public:
 
     std::string repr() const;
 
+    bool operator==(const Question& rhs) const noexcept;
+    bool operator!=(const Question& rhs) const noexcept;
+
 private:
     Name m_qname;
     uint16_t m_qtype;

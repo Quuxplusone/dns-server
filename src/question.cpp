@@ -36,3 +36,13 @@ std::string Question::repr() const
     result += RRType(m_qtype).repr();
     return result;
 }
+
+bool Question::operator==(const Question& rhs) const noexcept
+{
+    return m_qname == rhs.m_qname && m_qtype == rhs.m_qtype && m_qclass == rhs.m_qclass;
+}
+
+bool Question::operator!=(const Question& rhs) const noexcept
+{
+    return !(*this == rhs);
+}

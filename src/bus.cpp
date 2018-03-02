@@ -66,7 +66,7 @@ class BusImpl {
         struct timeval tv = nonstd::as_timeval(timeout);
         int nready = select(maxfd + 1, &readfds, &writefds, nullptr, &tv);
         if (nready < 0) {
-            throw dns::Exception("select returned ", nready, " with errno ", int(errno));
+            throw dns::Exception("select returned ", nready, " with errno ", strerror(errno));
         } else if (nready == 0) {
             // The deadline was reached.
         } else {
@@ -86,7 +86,7 @@ class BusImpl {
                 char cmd;
                 ssize_t nbytes = read(m_readable_masterfd, &cmd, 1);
                 if (nbytes != 1) {
-                    throw dns::Exception("read returned ", nbytes, " with errno ", int(errno));
+                    throw dns::Exception("read returned ", nbytes, " with errno ", strerror(errno));
                 }
                 nonstd::unique_function<bool()> bookkeeping;
                 std::unique_lock<std::mutex> lk(m_bookkeeping_mutex);
@@ -107,7 +107,7 @@ class BusImpl {
         int fds[2];
         int rc = pipe(fds);
         if (rc != 0) {
-            throw dns::Exception("pipe returned ", rc, " with errno ", int(errno));
+            throw dns::Exception("pipe returned ", rc, " with errno ", strerror(errno));
         }
         m_writable_masterfd = fds[1];
         m_readable_masterfd = fds[0];
@@ -124,7 +124,7 @@ class BusImpl {
         ssize_t rc = 0;
         while (rc == 0) { rc = write(m_writable_masterfd, &cmd, 1); }
         if (rc < 0) {
-            throw dns::Exception("write returned ", rc, " with errno ", int(errno));
+            throw dns::Exception("write returned ", rc, " with errno ", strerror(errno));
         }
     }
 
